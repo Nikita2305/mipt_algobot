@@ -13,7 +13,7 @@ class generator:
         self.gen_name = gname
         self.filename = fname
     def __del__(self):
-        if (len(exe_filename) > 0):
+        if (len(self.exe_filename) > 0):
             os.system("rm " + self.exe_filename)
     def dump(self):
         d = dict()

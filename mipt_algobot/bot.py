@@ -4,8 +4,8 @@ from mipt_algobot.contest import *
 from mipt_algobot.access_manager import *
 from functools import wraps
 
-ADMIN_ID = "???"
-BOT_KEY = "???"
+ADMIN_ID = "305197734"
+BOT_KEY = "1716312395:AAHNG2oy48lC-EnuLfCYCO80IVHUGrNODS8"
 
 from telegram import (
     ReplyKeyboardRemove,
@@ -53,25 +53,26 @@ def access_decorator(function):
 def help_text(update, context):
     update.message.reply_text(
     """
-+ /help - to see this message
+/help - to see this message
 
 *For users*
-+ /contest\_info
-+ /get\_id
-+ /stress
-+ /cancel
+/contest\_info
+/get\_id
+/stress
+/cancel
 
 *For managers*
-+ /rules
-+ /set\_contest
-+ /set\_solution
-+ /add\_generator
-+ /erase\_generator
+/rules
+/set\_contest
+/set\_solution
+/add\_generator
+/erase\_generator
 
 *For chief manager*
-+ /add\_manager
-+ /erase\_manager
-+ /managers
+/add\_manager
+/erase\_manager
+/managers
+/kill
     """, parse_mode=ParseMode.MARKDOWN)
 
 def get_id(update, context):
@@ -134,6 +135,14 @@ def set_contest_size(update, context):
 
 def set_contest_link(update, context):
     global contest_obj
+    temp_filename = "mipt_algobot/temp/temp.tar.gz"
+    os.system("tar -czvf " + temp_filename + " mipt_algobot/contest")
+    update.message.reply_document(
+        open(temp_filename, 'rb'), 
+        filename="prev_cont.tar.gz",
+        caption="Your previous contest"
+    )
+    os.system("./restart.sh")
     contest_obj = contest(context.user_data['size'], update.message.text)
     update.message.reply_text("Создан контест на " + str(context.user_data['size']) +" задач")
     return ConversationHandler.END
@@ -191,7 +200,7 @@ def add_generator_file(update, context):
     global contest_obj
     generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
-    f.download(generator_path)
+    f.download(generator_path) 
     res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['letter'])
     update.message.reply_text(res[1])
     return ConversationHandler.END   
@@ -255,6 +264,11 @@ def cancel(update, context):
     update.message.reply_text("Диалог окончен, вводите новую команду")
     return ConversationHandler.END
 
+def kill(update, context):
+    update.message.reply_text("Сессия закрыта, пока:)")
+    os.system("rm ./mipt_algobot/temp/*")
+    quit()
+
 def error(update, context):
     logger.warning('ERROR: Update "%s" caused error "%s"', update, context.error)
     update.message.reply_text("Error has been occured!")
@@ -269,6 +283,7 @@ def main():
     dp.add_handler(CommandHandler("get_id", get_id))
     dp.add_handler(CommandHandler("contest_info", contest_info))
     dp.add_handler(CommandHandler("managers", get_managers))
+    dp.add_handler(CommandHandler("kill", kill))
     dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('add_manager', add_manager_entry)],
         states={
@@ -276,7 +291,7 @@ def main():
                 MessageHandler(Filters.text, add_manager)
             ]
         },
-        fallbacks=[]
+        fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
     dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('erase_manager', erase_manager_entry)],
@@ -285,7 +300,7 @@ def main():
                 MessageHandler(Filters.text, erase_manager)
             ]
         },
-        fallbacks=[]
+        fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
     dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('set_contest', set_contest_entry)],
@@ -297,7 +312,7 @@ def main():
                 MessageHandler(Filters.text, set_contest_link)
             ]
         },
-        fallbacks=[]
+        fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
     dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('set_solution', set_solution_entry)],
@@ -336,7 +351,7 @@ def main():
                 MessageHandler(Filters.text, erase_generator_name)
             ],
         },
-        fallbacks=[]
+        fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
     dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('stress', stress_entry)],

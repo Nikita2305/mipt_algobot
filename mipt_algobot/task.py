@@ -54,8 +54,6 @@ FAILe = u'\U0000274c'
 class task:
     solution = None
     generators = []
-    def __init__(self):
-        pass
     def load(self, jobj):
         self.solution = jobj["solution"]
         self.generators = [generator(gen["name"], gen["path"]) for gen in jobj["generators"]]

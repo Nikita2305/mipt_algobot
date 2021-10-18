@@ -5,7 +5,8 @@ class contest:
     tasks = []
     link = ""
     def __init__(self, size = 0, l = ""):
-        self.tasks = [task() for i in range(size)]
+        for i in range(size):
+            self.tasks += [task()]
         self.link = l 
     def dump(self, filename):
         d = dict()
