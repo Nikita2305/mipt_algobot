@@ -1,7 +1,8 @@
 #include <iostream>
-#include <ctime>
+#include <time.h>
 
 int main() {
-    srand(std::time(0));
+    clock();
+    srand(10 * time(0) + clock()); // To make it more randomized
     std::cout << 1 + rand() % 10;
 }

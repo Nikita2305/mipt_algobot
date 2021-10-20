@@ -1,59 +1,86 @@
 from mipt_algobot.generator import *
 import filecmp
+from multiprocessing.pool import ThreadPool
 import multiprocessing
 import time
+import os
+
+TEST_COUNT = 500
+TIME_WAIT = 1
+ITERATIONS = 100
+COMPILATION_TIME_WAIT = 4
+
+def fast_system_call(bash_command, time_limit):
+    T = multiprocessing.Process(target=os.system, args=(bash_command,))
+    T.start()
+    TimeLimit = True
+    for i in range(ITERATIONS):
+        time.sleep(time_limit / ITERATIONS)
+        if not T.is_alive():
+            TimeLimit = False
+            break
+    T.terminate()
+    return ((not TimeLimit), None)
+
+def system_call(bash_command, time_limit):
+    pool = ThreadPool(processes=1)
+    async_result = pool.apply_async(os.system, (bash_command, ))
+    TimeLimit = True
+    for i in range(ITERATIONS):
+        time.sleep(time_limit / ITERATIONS)
+        if async_result.ready():
+            TimeLimit = False
+            break
+    if (TimeLimit): 
+        ret = (False, None)
+    else:
+        ret = (True, async_result.get())
+    pool.terminate()
+    return ret
+
+def vitek_path(path):
+    return os.path.relpath(path, "./mipt_algobot/temp/user")
+    
+def vitek_bash(command):
+    return "sudo runuser -l vitek -c \"" + command + "\""
 
 def comp(cpp_file):
     exe_file = "./mipt_algobot/temp/" + gen_timestamp()
-    code = os.system("g++ " + cpp_file + " -o " + exe_file)
-    return (bool(code == 0), exe_file)
+    status, code = system_call("g++ " + cpp_file + " -o " + exe_file, COMPILATION_TIME_WAIT) 
+    return (status and (code == 0), exe_file)
 
-'''
-code1 = None
-code2 = None
-'''
+VERDICT_OK, VERDICT_WA, VERDICT_TL, VERDICT_ERROR, = range(4)
 
-'''global code1
-    global code2
-    code1 = None
-    code2 = None'''
-
-'''print(code1, code2)
-    if (code1 == None or code2 == None or code1 + code2 != 0): 
-        os.system("rm " + output1 + " " + output2)
-        return False
-    '''
-
-def execute1(string):
-    os.system(string)
-
-def execute2(string):
-    os.system(string)
-
-def compare(exe1, exe2, test): 
+def compare(exe_OK, exe_TEST, test): 
     output1 = "./mipt_algobot/temp/" + gen_timestamp()
-    T1 = multiprocessing.Process(target=execute1, args=(exe1 + " < " + test + " > " + output1,))
-    T1.start()
-    output2 = "./mipt_algobot/temp/" + gen_timestamp()
-    T2 = multiprocessing.Process(target=execute2, args=(exe2 + " < " + test + " > " + output2,))
-    T2.start()
-    time.sleep(0.5)
-    T1.terminate()
-    T2.terminate()
+    OK1 = fast_system_call(exe_OK + " < " + test + " > " + output1, TIME_WAIT)[0]
+    output2 = "./mipt_algobot/temp/user/" + gen_timestamp() 
+    OK2 = fast_system_call(vitek_bash(vitek_path(exe_TEST) + " < " + vitek_path(test) + " > " + vitek_path(output2)), TIME_WAIT)[0]
+    if (not OK1):
+        os.system("rm " + output1)
+        os.system(vitek_bash("rm " + vitek_path(output2)))
+        return VERDICT_ERROR
+    if (not OK2):
+        os.system("rm " + output1)
+        os.system(vitek_bash("rm " + vitek_path(output2)))
+        return VERDICT_TL
     try: 
         ret = filecmp.cmp(output1, output2)
     except Exception:
-        os.system("rm " + output1 + " " + output2)
-        return False
-    os.system("rm " + output1 + " " + output2)
-    return ret
+        os.system("rm " + output1)
+        os.system(vitek_bash("rm " + vitek_path(output2)))
+        return VERDICT_WA
+    os.system("rm " + output1)
+    os.system(vitek_bash("rm " + vitek_path(output2)))
+    return (VERDICT_OK if ret else VERDICT_WA)
 
 OKe = u'\U00002714'
 FAILe = u'\U0000274c'
 
 class task:
-    solution = None
-    generators = []
+    def __init__(self):
+        self.solution = None
+        self.generators = []
     def load(self, jobj):
         self.solution = jobj["solution"]
         self.generators = [generator(gen["name"], gen["path"]) for gen in jobj["generators"]]
@@ -74,7 +101,7 @@ class task:
         filename = "./mipt_algobot/temp/to_check_generator.txt"
         if (self.generators[-1].generate(filename)):
             self.generators[-1].clear(filename)
-            return (True, "Generator have been added")
+            return (True, "Generator has been added")
         else:
             self.generators.pop()
             return (False, "Generator execution failed")
@@ -84,7 +111,7 @@ class task:
             if (self.generators[index].gen_name == gname):
                 os.system("rm " + self.generators[index].filename)
                 self.generators.pop(index)
-                return (True, "Generator have been erased")
+                return (True, "Generator has been erased")
         return (False, "Generator not found")
     def set_solution(self, fsolution):
         if (self.solution != None):
@@ -100,23 +127,29 @@ class task:
         if (not temp_good[0]):
             os.system("rm " + temp_good[1])
             os.system("rm " + temp_check[1])
-            return (False, "Author solution execution failed")
-        if (not temp_good[0]):
+            return (False, "Author solution compilation failed")
+        if (not temp_check[0]):
             os.system("rm " + temp_good[1])
             os.system("rm " + temp_check[1])
-            return (False, "Your solution execution failed")
+            return (False, "Your solution compilation failed")
         temp_good = temp_good[1]
         temp_check = temp_check[1]
-        for i in range(1000):
+        for i in range(TEST_COUNT):
+            print("Test " + str(i))
             gen = self.generators[i % len(self.generators)]
             if (gen.generate(filename)):
-                if (not compare(temp_good, temp_check, filename)):
-                    gen.clear(temp_good)
-                    gen.clear(temp_check)
-                    return (True, "Test have been found!", filename)
+                verdict = compare(temp_good, temp_check, filename)
+                if (verdict == VERDICT_WA or verdict == VERDICT_TL):
+                    os.system("rm " + temp_good)
+                    os.system("rm " + temp_check)
+                    return (True, "Test has been found! Verdict: " + ("WA" if verdict == VERDICT_WA else "TL"), filename)
+                if (verdict == VERDICT_ERROR):
+                    os.system("rm " + temp_good)
+                    os.system("rm " + temp_check)
+                    return (False, "Author solution had TL")
                 gen.clear(filename)
         os.system("rm " + temp_good)
         os.system("rm " + temp_check)
-        return (False, "Your solution seems OK")
+        return (False, "Your solution seems OK.")
     def generators_names(self):
         return [gen.gen_name for gen in self.generators]

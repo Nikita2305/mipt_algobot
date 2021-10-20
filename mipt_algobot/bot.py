@@ -54,6 +54,7 @@ def help_text(update, context):
     update.message.reply_text(
     """
 /help - to see this message
+/guide - to know basics of interaction
 
 *For users*
 /contest\_info
@@ -63,16 +64,23 @@ def help_text(update, context):
 
 *For managers*
 /rules
-/set\_contest
 /set\_solution
 /add\_generator
 /erase\_generator
 
 *For chief manager*
+/set\_contest
 /add\_manager
 /erase\_manager
 /managers
 /kill
+    """, parse_mode=ParseMode.MARKDOWN)
+
+def guide(update, context):
+    update.message.reply_text(
+    """
+1. Нажми /contest\_info, чтобы узнать, какой сейчас контест и какие в нём есть задачи.
+2. Нажми /stress, чтобы протестировать своё решение.
     """, parse_mode=ParseMode.MARKDOWN)
 
 def get_id(update, context):
@@ -272,6 +280,9 @@ def kill(update, context):
 def error(update, context):
     logger.warning('ERROR: Update "%s" caused error "%s"', update, context.error)
     update.message.reply_text("Error has been occured!")
+    context.bot.send_message(int(ADMIN_ID), "Error!")
+    context.bot.send_message(int(ADMIN_ID), str(update))
+    context.bot.send_message(int(ADMIN_ID), str(context.error))
 
 # ============ ADDING HANDLERS ==============
 def main():
@@ -279,6 +290,7 @@ def main():
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", help_text))
     dp.add_handler(CommandHandler("help", help_text))
+    dp.add_handler(CommandHandler("guide", guide))
     dp.add_handler(CommandHandler("rules", rules))
     dp.add_handler(CommandHandler("get_id", get_id))
     dp.add_handler(CommandHandler("contest_info", contest_info))
@@ -391,17 +403,18 @@ access_manager_obj.set_status(ADMIN_ID, CHIEF_MANAGER)
 
 # =============== SETTING UP PERMISSIONS ================
 
-permissions = { USER :          [help_text, get_id, cancel, stress_entry],
-                MANAGER :       [help_text, get_id, cancel, stress_entry,
-                                rules, set_contest_entry, set_solution_entry, add_generator_entry, erase_generator_entry],
-                CHIEF_MANAGER:  [help_text, get_id, cancel, stress_entry,
-                                rules, set_contest_entry, set_solution_entry, add_generator_entry, erase_generator_entry,
-                                add_manager_entry, erase_manager_entry, get_managers]
+permissions = { USER :          [help_text, guide, get_id, cancel, stress_entry],
+                MANAGER :       [help_text, guide,  get_id, cancel, stress_entry,
+                                rules, set_solution_entry, add_generator_entry, erase_generator_entry],
+                CHIEF_MANAGER:  [help_text, guide, get_id, cancel, stress_entry,
+                                rules, set_solution_entry, add_generator_entry, erase_generator_entry,
+                                add_manager_entry, erase_manager_entry, get_managers, set_contest_entry]
 }
 
 # =============== USING DECORATORS ==================
 
 help_text = access_decorator(help_text)
+guide = access_decorator(guide)
 get_id = access_decorator(get_id)
 rules = access_decorator(rules)
 get_managers = access_decorator(get_managers)
