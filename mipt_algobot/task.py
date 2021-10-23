@@ -10,6 +10,24 @@ TIME_WAIT = 1
 ITERATIONS = 100
 COMPILATION_TIME_WAIT = 4
 
+def format_output(filename):
+    array = []
+    temp = "./mipt_algobot/temp/" + gen_timestamp()
+    with open(filename, 'r') as f:
+        for line in f:
+            array += line.split()
+    with open(temp, 'w') as f:
+        for word in array:
+            f.write(word + "\n")
+    return temp
+
+def compare_outputs(output1, output2):
+    out1 = format_output(output1)
+    out2 = format_output(output2)
+    ret = filecmp.cmp(out1, out2)
+    os.system("rm " + out1 + " " + out2)
+    return ret
+
 def fast_system_call(bash_command, time_limit):
     T = multiprocessing.Process(target=os.system, args=(bash_command,))
     T.start()
@@ -42,37 +60,45 @@ def vitek_path(path):
     return os.path.relpath(path, "./mipt_algobot/temp/user")
     
 def vitek_bash(command):
-    return "sudo runuser -l vitek -c \"" + command + "\""
+    return "sudo su vitek -c \"" + command + "\""
+
+COMPILATION_OK, COMPILATION_TL, COMPILATION_ERROR, = range(3)
 
 def comp(cpp_file):
     exe_file = "./mipt_algobot/temp/" + gen_timestamp()
-    status, code = system_call("g++ " + cpp_file + " -o " + exe_file, COMPILATION_TIME_WAIT) 
-    return (status and (code == 0), exe_file)
+    status, code = system_call("g++ " + cpp_file + " -o " + exe_file, COMPILATION_TIME_WAIT)
+    if not status:
+        return (COMPILATION_TL, exe_file)
+    if (code != 0):
+        return (COMPILATION_ERROR, exe_file) 
+    return (COMPILATION_OK, exe_file)
 
 VERDICT_OK, VERDICT_WA, VERDICT_TL, VERDICT_ERROR, = range(4)
 
-def compare(exe_OK, exe_TEST, test): 
+def compare(exe_OK, exe_TEST, test):
     output1 = "./mipt_algobot/temp/" + gen_timestamp()
     OK1 = fast_system_call(exe_OK + " < " + test + " > " + output1, TIME_WAIT)[0]
     output2 = "./mipt_algobot/temp/user/" + gen_timestamp() 
-    OK2 = fast_system_call(vitek_bash(vitek_path(exe_TEST) + " < " + vitek_path(test) + " > " + vitek_path(output2)), TIME_WAIT)[0]
+    # OK2 = fast_system_call(exe_TEST + " < " + test + " > " + output2, TIME_WAIT)[0]
+    OK2 = fast_system_call(vitek_bash(exe_TEST + " < " + test + " > " + output2), TIME_WAIT)[0]
     if (not OK1):
-        os.system("rm " + output1)
-        os.system(vitek_bash("rm " + vitek_path(output2)))
-        return VERDICT_ERROR
+        os.system("rm -f " + output1 + " " + output2)
+        print("Author solution has TL!!!")
+        return (VERDICT_ERROR, None)
     if (not OK2):
-        os.system("rm " + output1)
-        os.system(vitek_bash("rm " + vitek_path(output2)))
-        return VERDICT_TL
+        os.system("rm -f " + output1 + " " + output2)
+        return (VERDICT_TL, None)
     try: 
-        ret = filecmp.cmp(output1, output2)
-    except Exception:
-        os.system("rm " + output1)
-        os.system(vitek_bash("rm " + vitek_path(output2)))
-        return VERDICT_WA
-    os.system("rm " + output1)
-    os.system(vitek_bash("rm " + vitek_path(output2)))
-    return (VERDICT_OK if ret else VERDICT_WA)
+        ret = compare_outputs(output1, output2)
+    except Exception as e:
+        print(e)
+        os.system("rm -f " + output1 + " " + output2)
+        return (VERDICT_ERROR, None)
+    os.system("rm -f " + output2)
+    if (ret):
+        os.system("rm -f " + output1)
+        return (VERDICT_OK, None)
+    return (VERDICT_WA, output1)
 
 OKe = u'\U00002714'
 FAILe = u'\U0000274c'
@@ -103,6 +129,8 @@ class task:
             self.generators[-1].clear(filename)
             return (True, "Generator has been added")
         else:
+            self.generators[-1].clear(filename)
+            os.system("rm " + self.generators[-1].filename)
             self.generators.pop()
             return (False, "Generator execution failed")
     def erase_generator(self, gname):
@@ -124,25 +152,26 @@ class task:
         filename = "./mipt_algobot/temp/input.txt"
         temp_good = comp(self.solution)
         temp_check = comp(fsolution)
-        if (not temp_good[0]):
+        if (temp_good[0] != COMPILATION_OK):
             os.system("rm " + temp_good[1])
             os.system("rm " + temp_check[1])
             return (False, "Author solution compilation failed")
-        if (not temp_check[0]):
+        if (temp_check[0] != COMPILATION_OK):
             os.system("rm " + temp_good[1])
             os.system("rm " + temp_check[1])
-            return (False, "Your solution compilation failed")
+            verdict = ("compilation error" if temp_check[0] == COMPILATION_ERROR else "time limit exceeded")
+            return (False, "Your solution compilation failed. Verdict: " + verdict)
         temp_good = temp_good[1]
         temp_check = temp_check[1]
         for i in range(TEST_COUNT):
             print("Test " + str(i))
             gen = self.generators[i % len(self.generators)]
             if (gen.generate(filename)):
-                verdict = compare(temp_good, temp_check, filename)
+                verdict, answer = compare(temp_good, temp_check, filename)
                 if (verdict == VERDICT_WA or verdict == VERDICT_TL):
                     os.system("rm " + temp_good)
                     os.system("rm " + temp_check)
-                    return (True, "Test has been found! Verdict: " + ("WA" if verdict == VERDICT_WA else "TL"), filename)
+                    return (True, "Test has been found! Verdict: " + ("WA" if verdict == VERDICT_WA else "TL"), filename, answer)
                 if (verdict == VERDICT_ERROR):
                     os.system("rm " + temp_good)
                     os.system("rm " + temp_check)

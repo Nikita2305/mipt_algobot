@@ -44,10 +44,23 @@ def access_decorator(function):
     def decorated(update, context):
         if (not function in permissions[access_manager_obj.get_status(str(update.effective_user.id))]):
             update.message.reply_text("Нет доступа, обращайтесь к админу")
-            return (False, "Access decorator forbids")
+            return ConversationHandler.END
         ret = function(update, context)
         dump_system()
         return ret
+    return decorated
+
+def feedback_decorator(function):
+    @wraps(function)
+    def decorated(update, context):
+        context.bot.send_message(int(ADMIN_ID),
+    """
+*Feedback*
+Text: """ + update.message.text + """
+Id: """ + str(update.effective_user.id),
+        parse_mode=ParseMode.MARKDOWN
+        )
+        return function(update, context)
     return decorated
 
 def help_text(update, context):
@@ -80,7 +93,8 @@ def guide(update, context):
     update.message.reply_text(
     """
 1. Нажми /contest\_info, чтобы узнать, какой сейчас контест и какие в нём есть задачи.
-2. Нажми /stress, чтобы протестировать своё решение.
+2. Проверь, что по нужной тебе задаче стоят две галочки.
+3. Нажми /stress, чтобы протестировать своё решение.
     """, parse_mode=ParseMode.MARKDOWN)
 
 def get_id(update, context):
@@ -265,6 +279,13 @@ def stress_file(update, context):
             caption="Here is the test, where your program fails:)"
         )
         os.system("rm " + res[2])
+        if (res[3] != None):
+            update.message.reply_document(
+                open(res[3], 'rb'), 
+                filename="answer.txt",
+                caption="Right answer. It could be different because of \\n"
+            )
+            os.system("rm " + res[3])
     os.system("rm " + temp_path)
     return ConversationHandler.END
 
@@ -408,7 +429,7 @@ permissions = { USER :          [help_text, guide, get_id, cancel, stress_entry]
                                 rules, set_solution_entry, add_generator_entry, erase_generator_entry],
                 CHIEF_MANAGER:  [help_text, guide, get_id, cancel, stress_entry,
                                 rules, set_solution_entry, add_generator_entry, erase_generator_entry,
-                                add_manager_entry, erase_manager_entry, get_managers, set_contest_entry]
+                                add_manager_entry, erase_manager_entry, get_managers, set_contest_entry, kill]
 }
 
 # =============== USING DECORATORS ==================
@@ -419,6 +440,7 @@ get_id = access_decorator(get_id)
 rules = access_decorator(rules)
 get_managers = access_decorator(get_managers)
 cancel = access_decorator(cancel)
+kill = access_decorator(kill)
 
 add_manager_entry = access_decorator(add_manager_entry)
 add_manager = cancel_decorator(add_manager)
@@ -444,7 +466,7 @@ erase_generator_letter = cancel_decorator(erase_generator_letter)
 erase_generator_name = cancel_decorator(erase_generator_name)
 
 stress_entry = access_decorator(stress_entry)
-stress_letter = cancel_decorator(stress_letter)
+stress_letter = cancel_decorator(feedback_decorator(stress_letter))
 stress_file = cancel_decorator(stress_file)
 
 # ============== LAUNCH ===============
