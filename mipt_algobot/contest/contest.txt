@@ -1,0 +1,78 @@
+{
+    "tasks": [
+        {
+            "solution": "./mipt_algobot/contest/solutions/A305197734.cpp",
+            "generators": [
+                {
+                    "name": "simple_generator",
+                    "path": "./mipt_algobot/contest/generators/Asimple_generator.cpp"
+                }
+            ]
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/B305197734.cpp",
+            "generators": [
+                {
+                    "name": "simple_gen",
+                    "path": "./mipt_algobot/contest/generators/Bsimple_gen.cpp"
+                }
+            ]
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/C305197734.cpp",
+            "generators": []
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/D305197734.cpp",
+            "generators": [
+                {
+                    "name": "gen_with_testing_answer_equals_the_length_of_word",
+                    "path": "./mipt_algobot/contest/generators/Dgen_with_testing_answer_equals_the_length_of_word.cpp"
+                }
+            ]
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/E305197734.cpp",
+            "generators": [
+                {
+                    "name": "gen_with_little_strings_4_to_8_letters",
+                    "path": "./mipt_algobot/contest/generators/Egen_with_little_strings_4_to_8_letters.cpp"
+                }
+            ]
+        },
+        {
+            "solution": null,
+            "generators": []
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/G305197734.cpp",
+            "generators": []
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/H305197734.cpp",
+            "generators": []
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/I305197734.cpp",
+            "generators": []
+        },
+        {
+            "solution": "./mipt_algobot/contest/solutions/J305197734.cpp",
+            "generators": [
+                {
+                    "name": "gen_with_little_strings_and_few_possible_letters",
+                    "path": "./mipt_algobot/contest/generators/Jgen_with_little_strings_and_few_possible_letters.cpp"
+                }
+            ]
+        },
+        {
+            "solution": null,
+            "generators": []
+        },
+        {
+            "solution": null,
+            "generators": []
+        }
+    ],
+    "link": "https://codeforces.com/group/R3IJoiTue4/contest/346948"
+}
