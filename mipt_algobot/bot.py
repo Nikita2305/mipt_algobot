@@ -55,10 +55,10 @@ def feedback_decorator(function):
     def decorated(update, context):
         context.bot.send_message(int(ADMIN_ID),
     """
-*Feedback*
+Feedback
 Text: """ + update.message.text + """
-Id: """ + str(update.effective_user.id),
-        parse_mode=ParseMode.MARKDOWN
+Id: """ + str(update.effective_user.id) + """
+Username: @""" + update.effective_user.username
         )
         return function(update, context)
     return decorated

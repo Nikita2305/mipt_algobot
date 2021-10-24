@@ -41,7 +41,7 @@
             ]
         },
         {
-            "solution": null,
+            "solution": "./mipt_algobot/contest/solutions/F350939846.cpp",
             "generators": []
         },
         {
@@ -66,11 +66,11 @@
             ]
         },
         {
-            "solution": null,
+            "solution": "./mipt_algobot/contest/solutions/K350939846.cpp",
             "generators": []
         },
         {
-            "solution": null,
+            "solution": "./mipt_algobot/contest/solutions/L350939846.cpp",
             "generators": []
         }
     ],
