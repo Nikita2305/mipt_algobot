@@ -42,11 +42,21 @@
         },
         {
             "solution": "./mipt_algobot/contest/solutions/F350939846.cpp",
-            "generators": []
+            "generators": [
+                {
+                    "name": "Gen_N5_L6_C3",
+                    "path": "./mipt_algobot/contest/generators/FGen_N5_L6_C3.cpp"
+                }
+            ]
         },
         {
             "solution": "./mipt_algobot/contest/solutions/G305197734.cpp",
-            "generators": []
+            "generators": [
+                {
+                    "name": "simple_gen_with_little_strings",
+                    "path": "./mipt_algobot/contest/generators/Gsimple_gen_with_little_strings.cpp"
+                }
+            ]
         },
         {
             "solution": "./mipt_algobot/contest/solutions/H305197734.cpp",

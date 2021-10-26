@@ -79,7 +79,6 @@ def compare(exe_OK, exe_TEST, test):
     output1 = "./mipt_algobot/temp/" + gen_timestamp()
     OK1 = fast_system_call(exe_OK + " < " + test + " > " + output1, TIME_WAIT)[0]
     output2 = "./mipt_algobot/temp/user/" + gen_timestamp() 
-    # OK2 = fast_system_call(exe_TEST + " < " + test + " > " + output2, TIME_WAIT)[0]
     OK2 = fast_system_call(vitek_bash(exe_TEST + " < " + test + " > " + output2), TIME_WAIT)[0]
     if (not OK1):
         os.system("rm -f " + output1 + " " + output2)
@@ -94,10 +93,10 @@ def compare(exe_OK, exe_TEST, test):
         print(e)
         os.system("rm -f " + output1 + " " + output2)
         return (VERDICT_ERROR, None)
-    os.system("rm -f " + output2)
     if (ret):
-        os.system("rm -f " + output1)
+        os.system("rm -f " + output1 + " " + output2)
         return (VERDICT_OK, None)
+    os.system("rm -f " + output2)
     return (VERDICT_WA, output1)
 
 OKe = u'\U00002714'
@@ -130,7 +129,6 @@ class task:
             return (True, "Generator has been added")
         else:
             self.generators[-1].clear(filename)
-            os.system("rm " + self.generators[-1].filename)
             self.generators.pop()
             return (False, "Generator execution failed")
     def erase_generator(self, gname):
@@ -167,18 +165,18 @@ class task:
             print("Test " + str(i))
             gen = self.generators[i % len(self.generators)]
             if (gen.generate(filename)):
-                verdict, answer = compare(temp_good, temp_check, filename)
+                verdict, judge_answer = compare(temp_good, temp_check, filename)
                 if (verdict == VERDICT_WA or verdict == VERDICT_TL):
                     os.system("rm " + temp_good)
                     os.system("rm " + temp_check)
-                    return (True, "Test has been found! Verdict: " + ("WA" if verdict == VERDICT_WA else "TL"), filename, answer)
+                    return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL") + ", test failed: №" + str(i), filename, judge_answer)
                 if (verdict == VERDICT_ERROR):
                     os.system("rm " + temp_good)
                     os.system("rm " + temp_check)
-                    return (False, "Author solution had TL")
+                    return (False, "Author solution had TL or another error was occured")
                 gen.clear(filename)
         os.system("rm " + temp_good)
         os.system("rm " + temp_check)
-        return (False, "Your solution seems OK.")
+        return (False, "Your solution seems OK. " + str(TEST_COUNT) + " small tests were passed.")
     def generators_names(self):
         return [gen.gen_name for gen in self.generators]

@@ -93,7 +93,7 @@ def guide(update, context):
     update.message.reply_text(
     """
 1. Нажми /contest\_info, чтобы узнать, какой сейчас контест и какие в нём есть задачи.
-2. Проверь, что по нужной тебе задаче стоят две галочки.
+2. Проверь, что по нужной тебе задаче стоят две галочки. Если по задаче нет генератора - возможно в ней множественный ответ, а значит бот пока ничем не может помочь.
 3. Нажми /stress, чтобы протестировать своё решение.
     """, parse_mode=ParseMode.MARKDOWN)
 
@@ -213,18 +213,30 @@ def add_generator_letter(update, context):
     update.message.reply_text("Введите название вашего генератора (или /cancel)")
     return ADD_GENERATOR_NAME_STATE
 
-def add_generator_name(update, context):
+def correct_file_name(filename):
+    filename = filename.lower()
+    for c in filename:
+        if not (c.isalpha() or c.isdigit() or c == '_'):
+            return False
+    return True 
+
+def add_generator_name(update, context): 
+    if (not correct_file_name(update.message.text)):
+        update.message.reply_text("Некорректное имя генератора, пожалуйста, используйте латинские буквы, цифры и нижние подчёркивания")
+        return cancel(update, context)
     context.user_data['gen_name'] = update.message.text;
     update.message.reply_text("Ожидаю файл генератора (или /cancel)")
     return ADD_GENERATOR_FILE_STATE
 
 def add_generator_file(update, context):
-    global contest_obj
+    global contest_obj 
     generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(generator_path) 
     res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['letter'])
     update.message.reply_text(res[1])
+    if (not res[0]):
+        os.system("rm " + generator_path)
     return ConversationHandler.END   
 
 ERASE_GENERATOR_LETTER_STATE, ERASE_GENERATOR_NAME_STATE, = range(2)
@@ -272,6 +284,7 @@ def stress_file(update, context):
     update.message.reply_text("Ok, testing...")
     res = contest_obj.stress(temp_path, context.user_data['letter'])
     update.message.reply_text(res[1])
+    context.bot.send_message(int(ADMIN_ID), res[1]) # feedback
     if (res[0]):
         update.message.reply_document(
             open(res[2], 'rb'), 
@@ -280,11 +293,14 @@ def stress_file(update, context):
         )
         os.system("rm " + res[2])
         if (res[3] != None):
-            update.message.reply_document(
-                open(res[3], 'rb'), 
-                filename="answer.txt",
-                caption="Right answer. It could be different because of \\n"
-            )
+            if (os.path.isfile(res[3]) and os.path.getsize(res[3]) > 0):
+                update.message.reply_document(
+                    open(res[3], 'rb'), 
+                    filename="right_answer.txt",
+                    caption="Right answer on this test."
+                )
+            else:
+                update.message.reply_text("Right answer is empty file")
             os.system("rm " + res[3])
     os.system("rm " + temp_path)
     return ConversationHandler.END
