@@ -66,7 +66,7 @@ COMPILATION_OK, COMPILATION_TL, COMPILATION_ERROR, = range(3)
 
 def comp(cpp_file):
     exe_file = "./mipt_algobot/temp/" + gen_timestamp()
-    status, code = system_call("g++ " + cpp_file + " -o " + exe_file, COMPILATION_TIME_WAIT)
+    status, code = system_call("g++ -O3 " + cpp_file + " -o " + exe_file, COMPILATION_TIME_WAIT)
     if not status:
         return (COMPILATION_TL, exe_file)
     if (code != 0):

@@ -81,7 +81,12 @@
         },
         {
             "solution": "./mipt_algobot/contest/solutions/L350939846.cpp",
-            "generators": []
+            "generators": [
+                {
+                    "name": "Gen_L10_N10_l5_C2",
+                    "path": "./mipt_algobot/contest/generators/LGen_L10_N10_l5_C2.cpp"
+                }
+            ]
         }
     ],
     "link": "https://codeforces.com/group/R3IJoiTue4/contest/346948"
