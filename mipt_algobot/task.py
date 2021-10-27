@@ -6,6 +6,7 @@ import time
 import os
 
 TEST_COUNT = 500
+CONST_TESTS = 10
 TIME_WAIT = 1
 ITERATIONS = 100
 COMPILATION_TIME_WAIT = 4
@@ -108,7 +109,10 @@ class task:
         self.generators = []
     def load(self, jobj):
         self.solution = jobj["solution"]
-        self.generators = [generator(gen["name"], gen["path"]) for gen in jobj["generators"]]
+        for gen in jobj["generators"]:
+            g = generator(None, None, None, None)
+            g.load(gen)
+            self.generators.append(g)
     def dump(self):
         jobj = dict()
         jobj["solution"] = self.solution
@@ -118,19 +122,33 @@ class task:
         ret = "Solution: " + (FAILe if self.solution == None else OKe) + "\n"
         ret += "Generators: " + (FAILe if len(self.generators) == 0 else OKe) + "\n"
         return ret
-    def add_generator(self, gname, gfile):
+    def add_generator(self, gname, gfile, gpriority, gtype):        
         for gen in self.generators:
             if gen.gen_name == gname:
                 return (False, "There is such generator already!")
-        self.generators.append(generator(gname, gfile))
+       
+        test_gen = generator(gname, gfile, gpriority, gtype) # to test
         filename = "./mipt_algobot/temp/to_check_generator.txt"
-        if (self.generators[-1].generate(filename)):
-            self.generators[-1].clear(filename)
-            return (True, "Generator has been added")
-        else:
-            self.generators[-1].clear(filename)
-            self.generators.pop()
+        if not test_gen.generate(filename):
+            test_gen.clear(filename)
             return (False, "Generator execution failed")
+        os.system("rm " + filename)
+
+        inserted = False
+        last_prior = 0
+        for i in range(len(self.generators)):
+            gen = self.generators[i]
+            if (inserted):
+                gen.priority += 1
+            else:
+                if (gpriority <= gen.priority):
+                    self.generators.insert(i, generator(gname, gfile, gen.priority, gtype))
+                    inserted = True
+                last_prior = gen.priority 
+        if not inserted:
+            self.generators.append(generator(gname, gfile, last_prior + 1, gtype))
+
+        return (True, "Generator has been added")
     def erase_generator(self, gname):
         for i in range(len(self.generators)):
             index = len(self.generators) - i - 1
@@ -161,22 +179,33 @@ class task:
             return (False, "Your solution compilation failed. Verdict: " + verdict)
         temp_good = temp_good[1]
         temp_check = temp_check[1]
-        for i in range(TEST_COUNT):
-            print("Test " + str(i))
-            gen = self.generators[i % len(self.generators)]
-            if (gen.generate(filename)):
-                verdict, judge_answer = compare(temp_good, temp_check, filename)
-                if (verdict == VERDICT_WA or verdict == VERDICT_TL):
-                    os.system("rm " + temp_good)
-                    os.system("rm " + temp_check)
-                    return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL") + ", test failed: №" + str(i), filename, judge_answer)
-                if (verdict == VERDICT_ERROR):
-                    os.system("rm " + temp_good)
-                    os.system("rm " + temp_check)
-                    return (False, "Author solution had TL or another error was occured")
-                gen.clear(filename)
+
+        multi_test_count = len([1 for gen in self.generators if gen.generator_type == MULTI_TEST]) 
+        test_number = 0
+        for gen in self.generators:
+            print("+ Generator")
+            if (gen.generator_type == MULTI_TEST):
+                tests_count = TEST_COUNT // multi_test_count
+            else:
+                tests_count = CONST_TESTS
+            for i in range(tests_count):
+                test_number += 1
+                print("Test " + str(test_number))
+                if (gen.generate(filename)):
+                    verdict, judge_answer = compare(temp_good, temp_check, filename)
+                    if (verdict == VERDICT_WA or verdict == VERDICT_TL):
+                        os.system("rm " + temp_good)
+                        os.system("rm " + temp_check)
+                        return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL") + ", test failed: №" + str(test_number), filename, judge_answer)
+                    if (verdict == VERDICT_ERROR):
+                        os.system("rm " + temp_good)
+                        os.system("rm " + temp_check)
+                        return (False, "Author solution had TL or another error was occured")
+                    gen.clear(filename)
+                else:
+                    return (False, "Test generation failed")
         os.system("rm " + temp_good)
         os.system("rm " + temp_check)
-        return (False, "Your solution seems OK. " + str(TEST_COUNT) + " small tests were passed.")
+        return (False, "Your solution seems OK. " + str(test_number) + " small tests were passed.")
     def generators_names(self):
         return [gen.gen_name for gen in self.generators]

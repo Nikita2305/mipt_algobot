@@ -194,7 +194,7 @@ def set_solution_file(update, context):
     update.message.reply_text(res[1])
     return ConversationHandler.END 
 
-ADD_GENERATOR_LETTER_STATE, ADD_GENERATOR_NAME_STATE, ADD_GENERATOR_FILE_STATE, = range(3)
+ADD_GENERATOR_LETTER_STATE, ADD_GENERATOR_NAME_STATE, ADD_GENERATOR_PRIORITY_STATE, ADD_GENERATOR_TYPE_STATE, ADD_GENERATOR_FILE_STATE, = range(5)
 
 def add_generator_entry(update, context):
     update.message.reply_text("Введите заглавную букву задачи(или /cancel)")
@@ -225,6 +225,24 @@ def add_generator_name(update, context):
         update.message.reply_text("Некорректное имя генератора, пожалуйста, используйте латинские буквы, цифры и нижние подчёркивания")
         return cancel(update, context)
     context.user_data['gen_name'] = update.message.text;
+    update.message.reply_text("Введите приоритет (число от 1 до +inf - место, на которое встанет ваш генератор) или /cancel.")
+    return ADD_GENERATOR_PRIORITY_STATE
+
+def add_generator_priority(update, context):
+    try:
+        prior = int(update.message.text)
+    except Exception:
+        update.message.reply_text("Хочу int, а не вот это вот всё")
+        return cancel(update, context)
+    context.user_data['prior'] = prior
+    update.message.reply_text("Выберите тип: /single_test или /multi_test, или вообще /cancel")
+    return ADD_GENERATOR_TYPE_STATE
+
+def add_generator_type(update, context):
+    if (update.message.text == "/multi_test"):
+        context.user_data['type'] = MULTI_TEST
+    else:
+        context.user_data['type'] = SINGLE_TEST
     update.message.reply_text("Ожидаю файл генератора (или /cancel)")
     return ADD_GENERATOR_FILE_STATE
 
@@ -233,7 +251,7 @@ def add_generator_file(update, context):
     generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(generator_path) 
-    res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['letter'])
+    res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['letter'])
     update.message.reply_text(res[1])
     if (not res[0]):
         os.system("rm " + generator_path)
@@ -384,6 +402,13 @@ def main():
             ADD_GENERATOR_NAME_STATE: [
                 MessageHandler(Filters.text, add_generator_name)
             ],
+            ADD_GENERATOR_PRIORITY_STATE: [
+                MessageHandler(Filters.text, add_generator_priority)
+            ],
+            ADD_GENERATOR_TYPE_STATE: [
+                CommandHandler("single_test", add_generator_type),
+                CommandHandler("multi_test", add_generator_type)
+            ],
             ADD_GENERATOR_FILE_STATE: [
                 MessageHandler(Filters.document, add_generator_file)
             ],
@@ -427,15 +452,15 @@ contest_path = "./mipt_algobot/contest/contest.txt"
 contest_obj = contest()
 try:
     contest_obj.load(contest_path)
-except Exception:
-    pass
+except Exception as e:
+    print(e)
 
 manager_path = "./mipt_algobot/contest/access_manager.txt"
 access_manager_obj = access_manager()
 try:
     access_manager_obj.load(manager_path)
-except Exception: 
-    pass 
+except Exception as e: 
+    print(e)
 access_manager_obj.set_status(ADMIN_ID, CHIEF_MANAGER)
 
 # =============== SETTING UP PERMISSIONS ================
@@ -475,6 +500,8 @@ set_solution_file = cancel_decorator(set_solution_file)
 add_generator_entry = access_decorator(add_generator_entry)
 add_generator_letter = cancel_decorator(add_generator_letter)
 add_generator_name = cancel_decorator(add_generator_name)
+add_generator_priority = cancel_decorator(add_generator_priority)
+add_generator_type = cancel_decorator(add_generator_type)
 add_generator_file = cancel_decorator(add_generator_file)
 
 erase_generator_entry = access_decorator(erase_generator_entry)

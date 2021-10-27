@@ -1,6 +1,8 @@
 import os
 import time
 
+SINGLE_TEST, MULTI_TEST, = range(2)
+
 def gen_timestamp():
     s = str(time.time())
     return "".join(s.split('.'))
@@ -9,9 +11,13 @@ class generator:
     gen_name = ""
     filename = ""
     exe_filename = ""
-    def __init__(self, gname, fname):
+    priority = None
+    generator_type = None
+    def __init__(self, gname, fname, priority, generator_type):
         self.gen_name = gname
         self.filename = fname
+        self.priority = priority
+        self.generator_type = generator_type
     def __del__(self):
         if (len(self.exe_filename) > 0):
             os.system("rm " + self.exe_filename)
@@ -19,10 +25,14 @@ class generator:
         d = dict()
         d["name"] = self.gen_name
         d["path"] = self.filename
+        d["prior"] = self.priority
+        d["type"] = self.generator_type
         return d
     def load(self, jobj):
-        self.gen_name = d["name"]
-        self.filename = d["path"]  
+        self.gen_name = jobj["name"]
+        self.filename = jobj["path"]
+        self.priority = jobj["prior"]
+        self.generator_type = jobj["type"]
     def generate(self, output_filename):
         ex_code = 0
         if (self.exe_filename == ""):

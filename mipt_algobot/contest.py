@@ -29,11 +29,11 @@ class contest:
             ret += letter + "\n"
             ret += self.tasks[i].to_string()
         return ret 
-    def add_generator(self, gname, gfile, taskletter):
+    def add_generator(self, gname, gfile, gprior, gtype, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):
             return (False, "Wrong task letter")
-        return self.tasks[task_id].add_generator(gname, gfile)
+        return self.tasks[task_id].add_generator(gname, gfile, gprior, gtype)
     def erase_generator(self, gname, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):

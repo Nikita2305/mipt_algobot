@@ -5,7 +5,9 @@
             "generators": [
                 {
                     "name": "simple_generator",
-                    "path": "./mipt_algobot/contest/generators/Asimple_generator.cpp"
+                    "path": "./mipt_algobot/contest/generators/Asimple_generator.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         },
@@ -14,7 +16,9 @@
             "generators": [
                 {
                     "name": "simple_gen",
-                    "path": "./mipt_algobot/contest/generators/Bsimple_gen.cpp"
+                    "path": "./mipt_algobot/contest/generators/Bsimple_gen.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         },
@@ -27,7 +31,9 @@
             "generators": [
                 {
                     "name": "gen_with_testing_answer_equals_the_length_of_word",
-                    "path": "./mipt_algobot/contest/generators/Dgen_with_testing_answer_equals_the_length_of_word.cpp"
+                    "path": "./mipt_algobot/contest/generators/Dgen_with_testing_answer_equals_the_length_of_word.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         },
@@ -36,7 +42,9 @@
             "generators": [
                 {
                     "name": "gen_with_little_strings_4_to_8_letters",
-                    "path": "./mipt_algobot/contest/generators/Egen_with_little_strings_4_to_8_letters.cpp"
+                    "path": "./mipt_algobot/contest/generators/Egen_with_little_strings_4_to_8_letters.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         },
@@ -45,7 +53,21 @@
             "generators": [
                 {
                     "name": "Gen_N5_L6_C3",
-                    "path": "./mipt_algobot/contest/generators/FGen_N5_L6_C3.cpp"
+                    "path": "./mipt_algobot/contest/generators/FGen_N5_L6_C3.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
+                {
+                    "name": "Gen_N4_L12_C3",
+                    "path": "./mipt_algobot/contest/generators/FGen_N4_L12_C3.cpp",
+                    "prior": 2,
+                    "type": 1
+                },
+                {
+                    "name": "Gen_Huge_Single",
+                    "path": "./mipt_algobot/contest/generators/FGen_Huge_Single.cpp",
+                    "prior": 3,
+                    "type": 0
                 }
             ]
         },
@@ -54,7 +76,9 @@
             "generators": [
                 {
                     "name": "simple_gen_with_little_strings",
-                    "path": "./mipt_algobot/contest/generators/Gsimple_gen_with_little_strings.cpp"
+                    "path": "./mipt_algobot/contest/generators/Gsimple_gen_with_little_strings.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         },
@@ -71,7 +95,9 @@
             "generators": [
                 {
                     "name": "gen_with_little_strings_and_few_possible_letters",
-                    "path": "./mipt_algobot/contest/generators/Jgen_with_little_strings_and_few_possible_letters.cpp"
+                    "path": "./mipt_algobot/contest/generators/Jgen_with_little_strings_and_few_possible_letters.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         },
@@ -84,7 +110,9 @@
             "generators": [
                 {
                     "name": "Gen_L10_N10_l5_C2",
-                    "path": "./mipt_algobot/contest/generators/LGen_L10_N10_l5_C2.cpp"
+                    "path": "./mipt_algobot/contest/generators/LGen_L10_N10_l5_C2.cpp",
+                    "prior": 1,
+                    "type": 1
                 }
             ]
         }
