@@ -5,8 +5,8 @@ from mipt_algobot.access_manager import *
 from functools import wraps
 
 ADMIN_ID = "305197734"
-BOT_KEY = "2059860302:AAH7O8SvtX2PT-NVrpLt7Ejk_aE6WqQRNBo"
-#BOT_KEY = "1716312395:AAHNG2oy48lC-EnuLfCYCO80IVHUGrNODS8"
+# test: BOT_KEY = "2059860302:AAH7O8SvtX2PT-NVrpLt7Ejk_aE6WqQRNBo"
+BOT_KEY = "1716312395:AAHNG2oy48lC-EnuLfCYCO80IVHUGrNODS8"
 
 from telegram import (
     ReplyKeyboardRemove,
