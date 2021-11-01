@@ -5,7 +5,8 @@ from mipt_algobot.access_manager import *
 from functools import wraps
 
 ADMIN_ID = "305197734"
-BOT_KEY = "1716312395:AAHNG2oy48lC-EnuLfCYCO80IVHUGrNODS8"
+BOT_KEY = "2059860302:AAH7O8SvtX2PT-NVrpLt7Ejk_aE6WqQRNBo"
+#BOT_KEY = "1716312395:AAHNG2oy48lC-EnuLfCYCO80IVHUGrNODS8"
 
 from telegram import (
     ReplyKeyboardRemove,
@@ -56,12 +57,15 @@ def feedback_decorator(function):
         context.bot.send_message(int(ADMIN_ID),
     """
 Feedback
-Text: """ + update.message.text + """
+Text: """ + str(update.message.text) + """
 Id: """ + str(update.effective_user.id) + """
-Username: @""" + update.effective_user.username
+Username: @""" + str(update.effective_user.username)
         )
         return function(update, context)
     return decorated
+
+
+# TODO: /report - to make service better
 
 def help_text(update, context):
     update.message.reply_text(
@@ -72,7 +76,7 @@ def help_text(update, context):
 *For users*
 /contest\_info
 /get\_id
-/stress
+/stress - core function
 /cancel
 
 *For managers*
@@ -205,7 +209,7 @@ def add_generator_letter(update, context):
     if not len(update.message.text) == 1:
         return cancel(update, context)
     context.user_data['letter'] = update.message.text;
-    res = contest_obj.generators_names(update.message.text)
+    res = contest_obj.generators_to_string(update.message.text)
     if not res[0]:
         update.message.reply_text(res[1])
         return cancel(update, context)
@@ -268,7 +272,7 @@ def erase_generator_letter(update, context):
     if not len(update.message.text) == 1:
         return cancel(update, context)
     context.user_data['letter'] = update.message.text;
-    res = contest_obj.generators_names(update.message.text)
+    res = contest_obj.generators_to_string(update.message.text)
     if not res[0]:
         update.message.reply_text(res[1])
         return cancel(update, context)
@@ -321,6 +325,16 @@ def stress_file(update, context):
                 update.message.reply_text("Right answer is empty file")
             os.system("rm " + res[3])
     os.system("rm " + temp_path)
+    return ConversationHandler.END
+
+REPORT_TEXT_STATE = 0
+
+def report_entry(update, context):
+    return ConversationHandler.END
+    # update.message.reply_text("Введите текст репорта. Например: [нужен генератор по задаче С] или [тесты по задаче А - слабые] (или /cancel)")
+    # return REPORT_TEXT_STATE
+
+def report_text(update, context): # by feedback
     return ConversationHandler.END
 
 def cancel(update, context):
@@ -439,6 +453,15 @@ def main():
         },
         fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
+    dp.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('report', report_entry)],
+        states={
+            REPORT_TEXT_STATE: [
+                MessageHandler(Filters.text, report_text)
+            ],
+        },
+        fallbacks=[MessageHandler(Filters.all, cancel)]
+    ))
     dp.add_error_handler(error) 
     updater.start_polling()
     updater.idle()
@@ -465,10 +488,10 @@ access_manager_obj.set_status(ADMIN_ID, CHIEF_MANAGER)
 
 # =============== SETTING UP PERMISSIONS ================
 
-permissions = { USER :          [help_text, guide, get_id, cancel, stress_entry],
-                MANAGER :       [help_text, guide,  get_id, cancel, stress_entry,
+permissions = { USER :          [help_text, guide, get_id, cancel, stress_entry, report_entry],
+                MANAGER :       [help_text, guide,  get_id, cancel, stress_entry, report_entry,
                                 rules, set_solution_entry, add_generator_entry, erase_generator_entry],
-                CHIEF_MANAGER:  [help_text, guide, get_id, cancel, stress_entry,
+                CHIEF_MANAGER:  [help_text, guide, get_id, cancel, stress_entry, report_entry,
                                 rules, set_solution_entry, add_generator_entry, erase_generator_entry,
                                 add_manager_entry, erase_manager_entry, get_managers, set_contest_entry, kill]
 }
@@ -511,6 +534,9 @@ erase_generator_name = cancel_decorator(erase_generator_name)
 stress_entry = access_decorator(stress_entry)
 stress_letter = cancel_decorator(feedback_decorator(stress_letter))
 stress_file = cancel_decorator(stress_file)
+
+report_entry = access_decorator(report_entry)
+report_text = cancel_decorator(feedback_decorator(report_text))
 
 # ============== LAUNCH ===============
 

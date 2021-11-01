@@ -49,8 +49,8 @@ class contest:
         if (task_id < 0 or task_id >= len(self.tasks)):
             return (False, "Wrong task letter")
         return self.tasks[task_id].stress(fsolution)
-    def generators_names(self, taskletter):
+    def generators_to_string(self, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):
             return (False, "Wrong task letter")
-        return (True, self.tasks[task_id].generators_names())
+        return (True, self.tasks[task_id].generators_to_string())
