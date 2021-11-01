@@ -4,16 +4,40 @@
             "solution": "./mipt_algobot/contest/solutions/A305197734.cpp",
             "generators": [
                 {
+                    "name": "Gen_N8_C3",
+                    "path": "./mipt_algobot/contest/generators/AGen_N8_C3.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
+                {
                     "name": "simple_generator",
                     "path": "./mipt_algobot/contest/generators/Asimple_generator.cpp",
                     "prior": 1,
                     "type": 1
+                },
+                {
+                    "name": "Gen_N1000_C3",
+                    "path": "./mipt_algobot/contest/generators/AGen_N1000_C3.cpp",
+                    "prior": 2,
+                    "type": 0
+                },
+                {
+                    "name": "Gen_N100000_C26",
+                    "path": "./mipt_algobot/contest/generators/AGen_N100000_C26.cpp",
+                    "prior": 4,
+                    "type": 0
                 }
             ]
         },
         {
             "solution": "./mipt_algobot/contest/solutions/B305197734.cpp",
             "generators": [
+                {
+                    "name": "Gen_L10_C3",
+                    "path": "./mipt_algobot/contest/generators/BGen_L10_C3.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
                 {
                     "name": "simple_gen",
                     "path": "./mipt_algobot/contest/generators/Bsimple_gen.cpp",
@@ -24,22 +48,53 @@
         },
         {
             "solution": "./mipt_algobot/contest/solutions/C305197734.cpp",
-            "generators": []
+            "generators": [
+                {
+                    "name": "Gen_N10_M3",
+                    "path": "./mipt_algobot/contest/generators/CGen_N10_M3.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
+                {
+                    "name": "Gen_N20_M4",
+                    "path": "./mipt_algobot/contest/generators/CGen_N20_M4.cpp",
+                    "prior": 2,
+                    "type": 1
+                }
+            ]
         },
         {
             "solution": "./mipt_algobot/contest/solutions/D305197734.cpp",
             "generators": [
                 {
+                    "name": "Gen_N8_C3",
+                    "path": "./mipt_algobot/contest/generators/DGen_N8_C3.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
+                {
                     "name": "gen_with_testing_answer_equals_the_length_of_word",
                     "path": "./mipt_algobot/contest/generators/Dgen_with_testing_answer_equals_the_length_of_word.cpp",
                     "prior": 1,
                     "type": 1
+                },
+                {
+                    "name": "Gen_N100000_C2",
+                    "path": "./mipt_algobot/contest/generators/DGen_N100000_C2.cpp",
+                    "prior": 2,
+                    "type": 0
                 }
             ]
         },
         {
             "solution": "./mipt_algobot/contest/solutions/E305197734.cpp",
             "generators": [
+                {
+                    "name": "Gen_N10_C3",
+                    "path": "./mipt_algobot/contest/generators/EGen_N10_C3.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
                 {
                     "name": "gen_with_little_strings_4_to_8_letters",
                     "path": "./mipt_algobot/contest/generators/Egen_with_little_strings_4_to_8_letters.cpp",
@@ -88,16 +143,53 @@
         },
         {
             "solution": "./mipt_algobot/contest/solutions/I305197734.cpp",
-            "generators": []
+            "generators": [
+                {
+                    "name": "Gen_N10_C2",
+                    "path": "./mipt_algobot/contest/generators/IGen_N10_C2.cpp",
+                    "prior": 1,
+                    "type": 1
+                },
+                {
+                    "name": "Gen_N20_C3",
+                    "path": "./mipt_algobot/contest/generators/IGen_N20_C3.cpp",
+                    "prior": 2,
+                    "type": 1
+                }
+            ]
         },
         {
             "solution": "./mipt_algobot/contest/solutions/J305197734.cpp",
             "generators": [
                 {
-                    "name": "gen_with_little_strings_and_few_possible_letters",
-                    "path": "./mipt_algobot/contest/generators/Jgen_with_little_strings_and_few_possible_letters.cpp",
+                    "name": "Gen_N10_C3",
+                    "path": "./mipt_algobot/contest/generators/JGen_N10_C3.cpp",
                     "prior": 1,
                     "type": 1
+                },
+                {
+                    "name": "gen_with_little_strings_and_few_possible_letters",
+                    "path": "./mipt_algobot/contest/generators/Jgen_with_little_strings_and_few_possible_letters.cpp",
+                    "prior": 2,
+                    "type": 1
+                },
+                {
+                    "name": "Gen_N100_C5",
+                    "path": "./mipt_algobot/contest/generators/JGen_N100_C5.cpp",
+                    "prior": 3,
+                    "type": 0
+                },
+                {
+                    "name": "Gen_N1000_C5",
+                    "path": "./mipt_algobot/contest/generators/JGen_N1000_C5.cpp",
+                    "prior": 3,
+                    "type": 0
+                },
+                {
+                    "name": "Gen_N10000_C5",
+                    "path": "./mipt_algobot/contest/generators/JGen_N10000_C5.cpp",
+                    "prior": 4,
+                    "type": 0
                 }
             ]
         },
