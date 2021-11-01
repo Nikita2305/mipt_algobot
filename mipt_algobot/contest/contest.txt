@@ -12,13 +12,13 @@
                 {
                     "name": "simple_generator",
                     "path": "./mipt_algobot/contest/generators/Asimple_generator.cpp",
-                    "prior": 1,
+                    "prior": 2,
                     "type": 1
                 },
                 {
                     "name": "Gen_N1000_C3",
                     "path": "./mipt_algobot/contest/generators/AGen_N1000_C3.cpp",
-                    "prior": 2,
+                    "prior": 3,
                     "type": 0
                 },
                 {
@@ -41,7 +41,7 @@
                 {
                     "name": "simple_gen",
                     "path": "./mipt_algobot/contest/generators/Bsimple_gen.cpp",
-                    "prior": 1,
+                    "prior": 2,
                     "type": 1
                 }
             ]
@@ -75,13 +75,13 @@
                 {
                     "name": "gen_with_testing_answer_equals_the_length_of_word",
                     "path": "./mipt_algobot/contest/generators/Dgen_with_testing_answer_equals_the_length_of_word.cpp",
-                    "prior": 1,
+                    "prior": 2,
                     "type": 1
                 },
                 {
                     "name": "Gen_N100000_C2",
                     "path": "./mipt_algobot/contest/generators/DGen_N100000_C2.cpp",
-                    "prior": 2,
+                    "prior": 3,
                     "type": 0
                 }
             ]
@@ -98,7 +98,7 @@
                 {
                     "name": "gen_with_little_strings_4_to_8_letters",
                     "path": "./mipt_algobot/contest/generators/Egen_with_little_strings_4_to_8_letters.cpp",
-                    "prior": 1,
+                    "prior": 2,
                     "type": 1
                 }
             ]
@@ -182,13 +182,13 @@
                 {
                     "name": "Gen_N1000_C5",
                     "path": "./mipt_algobot/contest/generators/JGen_N1000_C5.cpp",
-                    "prior": 3,
+                    "prior": 4,
                     "type": 0
                 },
                 {
                     "name": "Gen_N10000_C5",
                     "path": "./mipt_algobot/contest/generators/JGen_N10000_C5.cpp",
-                    "prior": 4,
+                    "prior": 5,
                     "type": 0
                 }
             ]
