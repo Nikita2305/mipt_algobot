@@ -136,26 +136,46 @@ class task:
 
         inserted = False
         last_prior = 0
-        for i in range(len(self.generators)):
+        i = 0
+        BOUND_i = len(self.generators)
+        while (True):
+            if not (i < BOUND_i):
+                break
             gen = self.generators[i]
             if (inserted):
                 gen.priority += 1
             else:
                 if (gpriority <= gen.priority):
                     self.generators.insert(i, generator(gname, gfile, gen.priority, gtype))
+                    BOUND_i += 1
                     inserted = True
-                last_prior = gen.priority 
+                last_prior = gen.priority
+            i += 1 
         if not inserted:
             self.generators.append(generator(gname, gfile, last_prior + 1, gtype))
 
         return (True, "Generator has been added")
     def erase_generator(self, gname):
-        for i in range(len(self.generators)):
-            index = len(self.generators) - i - 1
-            if (self.generators[index].gen_name == gname):
-                os.system("rm " + self.generators[index].filename)
-                self.generators.pop(index)
-                return (True, "Generator has been erased")
+        FOUND = False
+        BOUND_i = len(self.generators)
+        i = 0
+        while (True):
+            if not (i < BOUND_i):
+                break
+            # index = i # ?? index = len(self.generators) - i - 1
+            if (FOUND):
+                self.generators[i].priority -= 1
+            else:
+                if (self.generators[i].gen_name == gname):
+                    os.system("rm " + self.generators[i].filename)
+                    self.generators.pop(i)
+                    FOUND = True
+                    BOUND_i -= 1
+                    i -= 1 
+            i += 1
+            
+        if (FOUND):
+            return (True, "Generator has been erased")
         return (False, "Generator not found")
     def set_solution(self, fsolution):
         if (self.solution != None):
@@ -196,7 +216,7 @@ class task:
                     if (verdict == VERDICT_WA or verdict == VERDICT_TL):
                         os.system("rm " + temp_good)
                         os.system("rm " + temp_check)
-                        return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL") + ", test failed: №" + str(test_number), filename, judge_answer)
+                        return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL (over 1 second)") + ", test failed: №" + str(test_number), filename, judge_answer)
                     if (verdict == VERDICT_ERROR):
                         os.system("rm " + temp_good)
                         os.system("rm " + temp_check)
@@ -207,5 +227,5 @@ class task:
         os.system("rm " + temp_good)
         os.system("rm " + temp_check)
         return (False, "Your solution seems OK. " + str(test_number) + " small tests were passed.")
-    def generators_names(self):
-        return [gen.gen_name for gen in self.generators]
+    def generators_to_string(self):
+        return [str(gen.priority) + ". " + str(gen.gen_name) + " " + ("(multi)" if gen.generator_type == MULTI_TEST else "(single)") for gen in self.generators]
