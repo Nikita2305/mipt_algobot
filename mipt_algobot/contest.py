@@ -1,10 +1,10 @@
 from mipt_algobot.task import *
 import json
 
-class contest:
-    tasks = []
-    link = ""
+class contest:  
     def __init__(self, size = 0, l = ""):
+        self.link = ""
+        self.tasks = []
         for i in range(size):
             self.tasks += [task()]
         self.link = l 
@@ -29,11 +29,11 @@ class contest:
             ret += letter + "\n"
             ret += self.tasks[i].to_string()
         return ret 
-    def add_generator(self, gname, gfile, gprior, gtype, taskletter):
+    def add_generator(self, gname, gfile, gprior, gtype, gdescription, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):
             return (False, "Wrong task letter")
-        return self.tasks[task_id].add_generator(gname, gfile, gprior, gtype)
+        return self.tasks[task_id].add_generator(gname, gfile, gprior, gtype, gdescription)
     def erase_generator(self, gname, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):

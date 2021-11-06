@@ -13,26 +13,33 @@ class generator:
     exe_filename = ""
     priority = None
     generator_type = None
-    def __init__(self, gname, fname, priority, generator_type):
+    description = ""
+    def __init__(self, gname, fname, priority, generator_type, description):
         self.gen_name = gname
         self.filename = fname
         self.priority = priority
         self.generator_type = generator_type
+        self.description = description
     def __del__(self):
+        self.remove_executable()    
+    def remove_executable(self):
         if (len(self.exe_filename) > 0):
             os.system("rm " + self.exe_filename)
+            self.exe_filename = ""
     def dump(self):
         d = dict()
         d["name"] = self.gen_name
         d["path"] = self.filename
         d["prior"] = self.priority
         d["type"] = self.generator_type
+        d["description"] = self.description
         return d
     def load(self, jobj):
         self.gen_name = jobj["name"]
         self.filename = jobj["path"]
         self.priority = jobj["prior"]
         self.generator_type = jobj["type"]
+        self.description = jobj["description"]
     def generate(self, output_filename):
         ex_code = 0
         if (self.exe_filename == ""):

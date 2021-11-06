@@ -5,7 +5,7 @@ from mipt_algobot.access_manager import *
 from functools import wraps
 
 ADMIN_ID = "305197734"
-# test: BOT_KEY = "2059860302:AAH7O8SvtX2PT-NVrpLt7Ejk_aE6WqQRNBo"
+# BOT_KEY = "2059860302:AAH7O8SvtX2PT-NVrpLt7Ejk_aE6WqQRNBo" # TODO test bot
 BOT_KEY = "1716312395:AAHNG2oy48lC-EnuLfCYCO80IVHUGrNODS8"
 
 from telegram import (
@@ -65,7 +65,7 @@ Username: @""" + str(update.effective_user.username)
     return decorated
 
 
-# TODO: /report - to make service better
+# TODO: /report - to make service better. It's done, but with no response from mine to user. Fix that. 
 
 def help_text(update, context):
     update.message.reply_text(
@@ -74,7 +74,7 @@ def help_text(update, context):
 /guide - to know basics of interaction
 
 *For users*
-/contest\_info
+/contest
 /get\_id
 /stress - core function
 /cancel
@@ -96,7 +96,7 @@ def help_text(update, context):
 def guide(update, context):
     update.message.reply_text(
     """
-1. Нажми /contest\_info, чтобы узнать, какой сейчас контест и какие в нём есть задачи.
+1. Нажми /contest, чтобы узнать, какой сейчас контест и какие в нём есть задачи.
 2. Проверь, что по нужной тебе задаче стоят две галочки. Если по задаче нет генератора - возможно в ней множественный ответ, а значит бот пока ничем не может помочь.
 3. Нажми /stress, чтобы протестировать своё решение.
     """, parse_mode=ParseMode.MARKDOWN)
@@ -255,7 +255,7 @@ def add_generator_file(update, context):
     generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(generator_path) 
-    res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['letter'])
+    res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['gen_name'], context.user_data['letter'])
     update.message.reply_text(res[1])
     if (not res[0]):
         os.system("rm " + generator_path)
@@ -325,6 +325,7 @@ def stress_file(update, context):
                 update.message.reply_text("Right answer is empty file")
             os.system("rm " + res[3])
     os.system("rm " + temp_path)
+    os.system("sudo rm -f mipt_algobot/temp/user/*")
     return ConversationHandler.END
 
 REPORT_TEXT_STATE = 0
@@ -362,7 +363,7 @@ def main():
     dp.add_handler(CommandHandler("guide", guide))
     dp.add_handler(CommandHandler("rules", rules))
     dp.add_handler(CommandHandler("get_id", get_id))
-    dp.add_handler(CommandHandler("contest_info", contest_info))
+    dp.add_handler(CommandHandler("contest", contest_info))
     dp.add_handler(CommandHandler("managers", get_managers))
     dp.add_handler(CommandHandler("kill", kill))
     dp.add_handler(ConversationHandler(

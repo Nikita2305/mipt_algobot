@@ -1,7 +1,14 @@
+# Project temp folders
+mipt_algobot/temp/
+mipt_algobot/contest/
+temp_directory/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+Pipfile
+Pipfile.lock
 
 # C extensions
 *.so
