@@ -49,6 +49,12 @@ class contest:
         if (task_id < 0 or task_id >= len(self.tasks)):
             return (False, "Wrong task letter")
         return self.tasks[task_id].stress(fsolution)
+    def set_time_limit(self, time_limit, taskletter):
+        task_id = ord(taskletter) - ord('A')
+        if (task_id < 0 or task_id >= len(self.tasks)):
+            return (False, "Wrong task letter")
+        self.tasks[task_id].time_limit = time_limit
+        return (True, "Time limit has been changed")
     def generators_to_string(self, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):

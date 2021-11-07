@@ -65,7 +65,9 @@ Username: @""" + str(update.effective_user.username)
     return decorated
 
 
-# TODO: /report - to make service better. It's done, but with no response from mine to user. Fix that. 
+# TODO: /report - to make service better.
+# It's done(search for "report" in code),
+# but with no response from mine to user. Fix that. 
 
 def help_text(update, context):
     update.message.reply_text(
@@ -84,6 +86,7 @@ def help_text(update, context):
 /set\_solution
 /add\_generator
 /erase\_generator
+/set\_tl
 
 *For chief manager*
 /set\_contest
@@ -173,7 +176,32 @@ def set_contest_link(update, context):
     update.message.reply_text("Создан контест на " + str(context.user_data['size']) +" задач")
     return ConversationHandler.END
 
+TYPING_TIMELIMIT_LETTER_STATE, TYPING_TIMELIMIT_VALUE_STATE, = range(2)
+
+def set_timelimit_entry(update, context):
+    update.message.reply_text("Введите заглавную букву задачи(или /cancel)")
+    return TYPING_TIMELIMIT_LETTER_STATE
+
+def set_timelimit_letter(update, context):
+    if not len(update.message.text) == 1:
+        return cancel(update, context)
+    context.user_data['letter'] = update.message.text;
+    update.message.reply_text("Ожидаю целое число - время в секундах (или /cancel)")
+    return TYPING_TIMELIMIT_VALUE_STATE 
+
+def set_timelimit_value(update, context):
+    global contest_obj
+    value = update.message.text
+    try:
+        value = int(value)
+    except Exception:
+        return cancel(update, context)
+    res = contest_obj.set_time_limit(value, context.user_data['letter'])
+    update.message.reply_text(res[1])
+    return ConversationHandler.END
+
 def contest_info(update, context):
+    global contest_obj
     update.message.reply_text(contest_obj.to_string())
 
 SOLUTION_LETTER_STATE, SOLUTION_FILE_STATE = range(2)
@@ -198,7 +226,7 @@ def set_solution_file(update, context):
     update.message.reply_text(res[1])
     return ConversationHandler.END 
 
-ADD_GENERATOR_LETTER_STATE, ADD_GENERATOR_NAME_STATE, ADD_GENERATOR_PRIORITY_STATE, ADD_GENERATOR_TYPE_STATE, ADD_GENERATOR_FILE_STATE, = range(5)
+ADD_GENERATOR_LETTER_STATE, ADD_GENERATOR_NAME_STATE, ADD_GENERATOR_DESCRIPTION_STATE, ADD_GENERATOR_PRIORITY_STATE, ADD_GENERATOR_TYPE_STATE, ADD_GENERATOR_FILE_STATE, = range(6)
 
 def add_generator_entry(update, context):
     update.message.reply_text("Введите заглавную букву задачи(или /cancel)")
@@ -229,7 +257,12 @@ def add_generator_name(update, context):
         update.message.reply_text("Некорректное имя генератора, пожалуйста, используйте латинские буквы, цифры и нижние подчёркивания")
         return cancel(update, context)
     context.user_data['gen_name'] = update.message.text;
-    update.message.reply_text("Введите приоритет (число от 1 до +inf - место, на которое встанет ваш генератор) или /cancel.")
+    update.message.reply_text("Введите описание к генератору, можно на русском даже. Оно будет показано студентам. (или /cancel)")
+    return ADD_GENERATOR_DESCRIPTION_STATE
+ 
+def add_generator_description(update, context):
+    context.user_data['gen_description'] = update.message.text;
+    update.message.reply_text("Введите приоритет (число от 1 до +inf - место, на которое встанет ваш генератор) или /cancel.") 
     return ADD_GENERATOR_PRIORITY_STATE
 
 def add_generator_priority(update, context):
@@ -255,7 +288,7 @@ def add_generator_file(update, context):
     generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(generator_path) 
-    res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['gen_name'], context.user_data['letter'])
+    res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['gen_description'], context.user_data['letter'])
     update.message.reply_text(res[1])
     if (not res[0]):
         os.system("rm " + generator_path)
@@ -305,6 +338,7 @@ def stress_file(update, context):
     f.download(temp_path)
     update.message.reply_text("Ok, testing...")
     res = contest_obj.stress(temp_path, context.user_data['letter'])
+    os.system("sudo killall -u vitek") # на всякий случай убъём витьков
     update.message.reply_text(res[1])
     context.bot.send_message(int(ADMIN_ID), res[1]) # feedback
     if (res[0]):
@@ -397,6 +431,18 @@ def main():
         fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
     dp.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('set_tl', set_timelimit_entry)],
+        states={
+            TYPING_TIMELIMIT_LETTER_STATE: [
+                MessageHandler(Filters.text, set_timelimit_letter)
+            ],
+            TYPING_TIMELIMIT_VALUE_STATE: [
+                MessageHandler(Filters.text, set_timelimit_value)
+            ]
+        },
+        fallbacks=[MessageHandler(Filters.all, cancel)]
+    ))
+    dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('set_solution', set_solution_entry)],
         states={
             SOLUTION_LETTER_STATE: [
@@ -416,6 +462,9 @@ def main():
             ],
             ADD_GENERATOR_NAME_STATE: [
                 MessageHandler(Filters.text, add_generator_name)
+            ],
+            ADD_GENERATOR_DESCRIPTION_STATE: [
+                MessageHandler(Filters.text, add_generator_description)
             ],
             ADD_GENERATOR_PRIORITY_STATE: [
                 MessageHandler(Filters.text, add_generator_priority)
@@ -491,9 +540,9 @@ access_manager_obj.set_status(ADMIN_ID, CHIEF_MANAGER)
 
 permissions = { USER :          [help_text, guide, get_id, cancel, stress_entry, report_entry],
                 MANAGER :       [help_text, guide,  get_id, cancel, stress_entry, report_entry,
-                                rules, set_solution_entry, add_generator_entry, erase_generator_entry],
+                                rules, set_solution_entry, add_generator_entry, erase_generator_entry, set_timelimit_entry],
                 CHIEF_MANAGER:  [help_text, guide, get_id, cancel, stress_entry, report_entry,
-                                rules, set_solution_entry, add_generator_entry, erase_generator_entry,
+                                rules, set_solution_entry, add_generator_entry, erase_generator_entry, set_timelimit_entry,
                                 add_manager_entry, erase_manager_entry, get_managers, set_contest_entry, kill]
 }
 
@@ -517,6 +566,10 @@ set_contest_entry = access_decorator(set_contest_entry)
 set_contest_size = cancel_decorator(set_contest_size)
 set_contest_link = cancel_decorator(set_contest_link)
 
+set_timelimit_entry = access_decorator(set_timelimit_entry)
+set_timelimit_letter = cancel_decorator(set_timelimit_letter)
+set_timelimit_value = cancel_decorator(set_timelimit_value)
+
 set_solution_entry = access_decorator(set_solution_entry)
 set_solution_letter = cancel_decorator(set_solution_letter)
 set_solution_file = cancel_decorator(set_solution_file)
@@ -524,6 +577,7 @@ set_solution_file = cancel_decorator(set_solution_file)
 add_generator_entry = access_decorator(add_generator_entry)
 add_generator_letter = cancel_decorator(add_generator_letter)
 add_generator_name = cancel_decorator(add_generator_name)
+add_generator_description = cancel_decorator(add_generator_description)
 add_generator_priority = cancel_decorator(add_generator_priority)
 add_generator_type = cancel_decorator(add_generator_type)
 add_generator_file = cancel_decorator(add_generator_file)

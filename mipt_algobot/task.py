@@ -8,7 +8,6 @@ import signal
 
 TEST_COUNT = 500
 CONST_TESTS = 10
-TIME_WAIT = 2
 ITERATIONS = 100
 COMPILATION_TIME_WAIT = 4
 
@@ -99,18 +98,18 @@ def comp(cpp_file):
 
 VERDICT_OK, VERDICT_WA, VERDICT_TL, VERDICT_ERROR, = range(4)
 
-def compare(exe_OK, exe_TEST, test):
+def compare(exe_OK, exe_TEST, test, TIME_WAIT):
     output1 = "./mipt_algobot/temp/" + gen_timestamp()
     OK1 = fast_system_call(exe_OK + " < " + test + " > " + output1, TIME_WAIT)[0]
     output2 = "./mipt_algobot/temp/user/" + gen_timestamp() 
     # OK2 = fast_system_call(exe_TEST + " < " + test + " > " + output2, TIME_WAIT)[0]
-    OK2 = fast_system_call(vitek_bash(exe_TEST + " < " + test + " > " + output2), TIME_WAIT)[0]
-    os.system("sudo killall -u vitek")
+    OK2 = fast_system_call(vitek_bash(exe_TEST + " < " + test + " > " + output2), TIME_WAIT)[0] 
     if (not OK1):
         os.system("rm -f " + output1 + " " + output2)
         print("Author solution has TL!!!")
         return (VERDICT_ERROR, None)
     if (not OK2):
+        os.system("sudo killall -u vitek")
         os.system("rm -f " + output1 + " " + output2)
         return (VERDICT_TL, None)
     try: 
@@ -136,6 +135,7 @@ def passed_generators_to_string(lst):
 
 class task:
     def __init__(self):
+        self.time_limit = 1
         self.solution = None
         self.generators = []
     def load(self, jobj):
@@ -144,13 +144,19 @@ class task:
             g = generator(None, None, None, None, None)
             g.load(gen)
             self.generators.append(g)
+        try:
+            self.time_limit = jobj["time_limit"]
+        except Exception: # TODO: убрать
+            self.time_limit = 1
     def dump(self):
         jobj = dict()
         jobj["solution"] = self.solution
         jobj["generators"] = [gen.dump() for gen in self.generators];
+        jobj["time_limit"] = self.time_limit
         return jobj
     def to_string(self):
-        ret = "Solution: " + (FAILe if self.solution == None else OKe) + "\n"
+        ret = "Time Limit: " + str(self.time_limit) + " seconds\n"
+        ret += "Solution: " + (FAILe if self.solution == None else OKe) + "\n"
         ret += "Generators: " + (FAILe if len(self.generators) == 0 else OKe) + "\n"
         return ret
     def add_generator(self, gname, gfile, gpriority, gtype, gdescription):        
@@ -243,12 +249,12 @@ class task:
                 test_number += 1
                 # print("Test " + str(test_number))
                 if (gen.generate(filename)):
-                    verdict, judge_answer = compare(temp_good, temp_check, filename)
+                    verdict, judge_answer = compare(temp_good, temp_check, filename, self.time_limit)
                     if (verdict == VERDICT_WA or verdict == VERDICT_TL):
                         os.system("rm " + temp_good)
                         os.system("rm " + temp_check)
                         gen.remove_executable()
-                        return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL (over " + str(TIME_WAIT) + " seconds)") + ", test failed: №" + str(test_number) + ".\n\n" + passed_generators_to_string(passed_generators) + "\nFailed generator:\n" + gen.description, filename, judge_answer)
+                        return (True, "Test has been found! Verdict: " + ("WA(or RE or UB)" if verdict == VERDICT_WA else "TL (over " + str(self.time_limit) + " seconds)") + ", test failed: №" + str(test_number) + ".\n\n" + passed_generators_to_string(passed_generators) + "\nFailed generator:\n" + gen.description, filename, judge_answer)
                     gen.clear(filename)
                     if (verdict == VERDICT_ERROR):
                         os.system("rm " + temp_good)
