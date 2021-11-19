@@ -87,6 +87,7 @@ def help_text(update, context):
 /add\_generator
 /erase\_generator
 /set\_tl
+/set\_comparator
 
 *For chief manager*
 /set\_contest
@@ -226,6 +227,36 @@ def set_solution_file(update, context):
     update.message.reply_text(res[1])
     return ConversationHandler.END 
 
+COMPARATOR_LETTER_STATE, COMPARATOR_FILE_STATE, = range(2)
+
+def set_comparator_entry(update, context):
+    update.message.reply_text("Введите заглавную букву задачи(или /cancel)")
+    return COMPARATOR_LETTER_STATE
+
+def set_comparator_letter(update, context):
+    if not len(update.message.text) == 1:
+        return cancel(update, context)
+    context.user_data['letter'] = update.message.text;
+    update.message.reply_text("Ожидаю /default или файл - компаратор по задаче " +  update.message.text + ". (или /cancel)")
+    return COMPARATOR_FILE_STATE
+
+def set_comparator_file(update, context):
+    global contest_obj
+    comparator_path = "./mipt_algobot/contest/comparators/" + context.user_data['letter'] + str(update.effective_user.id) + ".cpp"
+    f = context.bot.getFile(update.message.document.file_id)
+    f.download(comparator_path)
+    res = contest_obj.set_comparator(comparator_path, context.user_data['letter'])
+    update.message.reply_text(res[1])
+    if not res[0]:
+        os.system("rm " + comparator_path)
+    return ConversationHandler.END 
+
+def set_comparator_default(update, context):
+    global contest_obj
+    res = contest_obj.set_comparator(None, context.user_data['letter'])
+    update.message.reply_text(res[1])
+    return ConversationHandler.END 
+
 ADD_GENERATOR_LETTER_STATE, ADD_GENERATOR_NAME_STATE, ADD_GENERATOR_DESCRIPTION_STATE, ADD_GENERATOR_PRIORITY_STATE, ADD_GENERATOR_TYPE_STATE, ADD_GENERATOR_FILE_STATE, = range(6)
 
 def add_generator_entry(update, context):
@@ -278,8 +309,11 @@ def add_generator_priority(update, context):
 def add_generator_type(update, context):
     if (update.message.text == "/multi_test"):
         context.user_data['type'] = MULTI_TEST
-    else:
+    elif (update.message.text == "/single_test"):
         context.user_data['type'] = SINGLE_TEST
+    else:
+        update.message.reply_text("Нужно было нажать на кнопку:(")
+        return cancel(update, context)
     update.message.reply_text("Ожидаю файл генератора (или /cancel)")
     return ADD_GENERATOR_FILE_STATE
 
@@ -455,6 +489,19 @@ def main():
         fallbacks=[MessageHandler(Filters.all, cancel)]
     ))
     dp.add_handler(ConversationHandler(
+        entry_points=[CommandHandler('set_comparator', set_comparator_entry)],
+        states={
+            COMPARATOR_LETTER_STATE: [
+                MessageHandler(Filters.text, set_comparator_letter)
+            ],
+            COMPARATOR_FILE_STATE: [
+                MessageHandler(Filters.document, set_comparator_file),
+                CommandHandler('default', set_comparator_default)
+            ]
+        },
+        fallbacks=[MessageHandler(Filters.all, cancel)]
+    ))
+    dp.add_handler(ConversationHandler(
         entry_points=[CommandHandler('add_generator', add_generator_entry)],
         states={
             ADD_GENERATOR_LETTER_STATE: [
@@ -540,9 +587,9 @@ access_manager_obj.set_status(ADMIN_ID, CHIEF_MANAGER)
 
 permissions = { USER :          [help_text, guide, get_id, cancel, stress_entry, report_entry],
                 MANAGER :       [help_text, guide,  get_id, cancel, stress_entry, report_entry,
-                                rules, set_solution_entry, add_generator_entry, erase_generator_entry, set_timelimit_entry],
+                                rules, set_solution_entry, add_generator_entry, erase_generator_entry, set_timelimit_entry, set_comparator_entry],
                 CHIEF_MANAGER:  [help_text, guide, get_id, cancel, stress_entry, report_entry,
-                                rules, set_solution_entry, add_generator_entry, erase_generator_entry, set_timelimit_entry,
+                                rules, set_solution_entry, add_generator_entry, erase_generator_entry, set_timelimit_entry, set_comparator_entry,
                                 add_manager_entry, erase_manager_entry, get_managers, set_contest_entry, kill]
 }
 
@@ -573,6 +620,11 @@ set_timelimit_value = cancel_decorator(set_timelimit_value)
 set_solution_entry = access_decorator(set_solution_entry)
 set_solution_letter = cancel_decorator(set_solution_letter)
 set_solution_file = cancel_decorator(set_solution_file)
+
+set_comparator_entry = access_decorator(set_comparator_entry)
+set_comparator_letter = cancel_decorator(set_comparator_letter)
+set_comparator_file = cancel_decorator(set_comparator_file)
+set_comparator_default = cancel_decorator(set_comparator_default)
 
 add_generator_entry = access_decorator(add_generator_entry)
 add_generator_letter = cancel_decorator(add_generator_letter)

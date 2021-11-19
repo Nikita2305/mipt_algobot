@@ -44,6 +44,11 @@ class contest:
         if (task_id < 0 or task_id >= len(self.tasks)):
             return (False, "Wrong task letter")
         return self.tasks[task_id].set_solution(fsolution)
+    def set_comparator(self, fcomparator, taskletter):
+        task_id = ord(taskletter) - ord('A')
+        if (task_id < 0 or task_id >= len(self.tasks)):
+            return (False, "Wrong task letter")
+        return self.tasks[task_id].set_comparator(fcomparator)
     def stress(self, fsolution, taskletter):
         task_id = ord(taskletter) - ord('A')
         if (task_id < 0 or task_id >= len(self.tasks)):

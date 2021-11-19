@@ -45,7 +45,8 @@ class generator:
         if (self.exe_filename == ""):
             self.exe_filename = "./mipt_algobot/temp/" + gen_timestamp()
             ex_code += os.system("g++ " + self.filename + " -o " + self.exe_filename)
-        if (ex_code > 0): 
+        if (ex_code > 0):
+            self.exe_filename = "" 
             return False
         ex_code += os.system(self.exe_filename + " > " + output_filename)
         return ex_code == 0
