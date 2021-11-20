@@ -64,7 +64,6 @@ Username: @""" + str(update.effective_user.username)
         return function(update, context)
     return decorated
 
-
 # TODO: /report - to make service better.
 # It's done(search for "report" in code),
 # but with no response from mine to user. Fix that. 

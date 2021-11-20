@@ -1,61 +1,16 @@
 from mipt_algobot.generator import *
 from mipt_algobot.comparator import *
-from multiprocessing.pool import ThreadPool
-import multiprocessing
-import time
+from mipt_algobot.system_calls import *
 import os
-from subprocess import Popen
-import signal
 
 TEST_COUNT = 500
 CONST_TESTS = 10
-ITERATIONS = 100
-COMPILATION_TIME_WAIT = 4
-
-def fast_system_call(bash_command, time_limit):
-    T = multiprocessing.Process(target=os.system, args=(bash_command,))
-    T.start()
-    TimeLimit = True
-    for i in range(ITERATIONS):
-        time.sleep(time_limit / ITERATIONS)
-        if not T.is_alive():
-            TimeLimit = False
-            break
-    T.terminate()
-    return ((not TimeLimit), None)
-
-def system_call(bash_command, time_limit):
-    pool = ThreadPool(processes=1)
-    async_result = pool.apply_async(os.system, (bash_command, ))
-    TimeLimit = True
-    for i in range(ITERATIONS):
-        time.sleep(time_limit / ITERATIONS)
-        if async_result.ready():
-            TimeLimit = False
-            break
-    if (TimeLimit): 
-        ret = (False, None)
-    else:
-        ret = (True, async_result.get())
-    pool.terminate()
-    return ret
 
 def vitek_path(path):
     return os.path.relpath(path, "./mipt_algobot/temp/user")
     
 def vitek_bash(command):
     return "sudo su vitek -c \"" + command + "\""
-
-COMPILATION_OK, COMPILATION_TL, COMPILATION_ERROR, = range(3)
-
-def comp(cpp_file):
-    exe_file = "./mipt_algobot/temp/" + gen_timestamp()
-    status, code = system_call("g++ -std=c++17 -O3 " + cpp_file + " -o " + exe_file, COMPILATION_TIME_WAIT)
-    if not status:
-        return (COMPILATION_TL, exe_file)
-    if (code != 0):
-        return (COMPILATION_ERROR, exe_file) 
-    return (COMPILATION_OK, exe_file)
 
 VERDICT_OK, VERDICT_WA, VERDICT_TL, VERDICT_ERROR, = range(4)
 
@@ -134,9 +89,10 @@ class task:
        
         test_gen = generator(gname, gfile, gpriority, gtype, gdescription) # to test
         filename = "./mipt_algobot/temp/to_check_generator.txt"
-        if not test_gen.generate(filename):
+        flag, verdict = test_gen.generate(filename)
+        if not flag:
             test_gen.clear(filename)
-            return (False, "Generator execution failed")
+            return (False, "Generator execution failed. Verdict: \n" + verdict)
         os.system("rm " + filename)
 
         inserted = False
@@ -182,6 +138,9 @@ class task:
             return (True, "Generator has been erased")
         return (False, "Generator was not found")
     def set_solution(self, fsolution):
+        code, executable, verdict = compilation().compile(fsolution, COMPILATION_TIME_WAIT, False)
+        if (code != COMPILATION_OK):
+            return (False, "Compilation failed. Verdict: \n" + verdict)
         if (self.solution != None):
             os.system("rm " + self.solution)
         self.solution = fsolution
@@ -192,8 +151,8 @@ class task:
         if (self.solution == None or len(self.generators) == 0):
             return (False, "Task is not complete")
         filename = "./mipt_algobot/temp/input.txt"
-        temp_good = comp(self.solution)
-        temp_check = comp(fsolution)
+        temp_good = compilation().compile(self.solution, COMPILATION_TIME_WAIT, True)
+        temp_check = compilation().compile(fsolution, COMPILATION_TIME_WAIT, True)
         if (temp_good[0] != COMPILATION_OK):
             os.system("rm " + temp_good[1])
             os.system("rm " + temp_check[1])
@@ -201,8 +160,7 @@ class task:
         if (temp_check[0] != COMPILATION_OK):
             os.system("rm " + temp_good[1])
             os.system("rm " + temp_check[1])
-            verdict = ("compilation error" if temp_check[0] == COMPILATION_ERROR else "time limit exceeded")
-            return (False, "Your solution compilation failed. Verdict: " + verdict)
+            return (False, "Your solution compilation failed. Verdict: \n" + temp_check[2])
         temp_good = temp_good[1]
         temp_check = temp_check[1]
 
@@ -218,7 +176,7 @@ class task:
             for i in range(tests_count):
                 test_number += 1
                 # print("Test " + str(test_number))
-                if (gen.generate(filename)):
+                if (gen.generate(filename)[0]):
                     verdict, judge_answer = compare(temp_good, temp_check, filename, self.comparator, self.time_limit)
                     if (verdict == VERDICT_WA or verdict == VERDICT_TL):
                         os.system("rm " + temp_good)
@@ -246,25 +204,3 @@ class task:
         return (False, "Your solution seems OK. " + str(test_number) + " small tests were passed.\n\n" + passed_generators_to_string(passed_generators)) 
     def generators_to_string(self):
         return [str(gen.priority) + ". " + str(gen.gen_name) + " " + ("(multi)" if gen.generator_type == MULTI_TEST else "(single)") for gen in self.generators]
-
-
-
-# Мусор
-"""
-def fast_system_call(bash_command, time_limit):
-    P = Popen(bash_command, shell=True, preexec_fn=os.setsid)
-    TimeLimit = True
-    for i in range(ITERATIONS):
-        try:
-            P.wait(time_limit / ITERATIONS)
-            TimeLimit = False
-            break
-        except Exception:
-            pass
-    if (TimeLimit):
-        try:
-            os.killpg(os.getpgid(P.pid), signal.SIGTERM)
-        except Exception:
-            print("Killing process exception")
-    return ((not TimeLimit), None)
-"""

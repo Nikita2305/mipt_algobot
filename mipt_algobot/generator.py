@@ -1,11 +1,8 @@
+from mipt_algobot.system_calls import *
 import os
 import time
 
 SINGLE_TEST, MULTI_TEST, = range(2)
-
-def gen_timestamp():
-    s = str(time.time())
-    return "".join(s.split('.'))
 
 class generator:
     gen_name = ""
@@ -40,16 +37,14 @@ class generator:
         self.priority = jobj["prior"]
         self.generator_type = jobj["type"]
         self.description = jobj["description"]
-    def generate(self, output_filename):
-        ex_code = 0
+    def generate(self, output_filename): 
         if (self.exe_filename == ""):
-            self.exe_filename = "./mipt_algobot/temp/" + gen_timestamp()
-            ex_code += os.system("g++ " + self.filename + " -o " + self.exe_filename)
-        if (ex_code > 0):
-            self.exe_filename = "" 
-            return False
-        ex_code += os.system(self.exe_filename + " > " + output_filename)
-        return ex_code == 0
+            code, self.exe_filename, verdict = compilation().compile(self.filename, COMPILATION_TIME_WAIT, True)
+            if (code != COMPILATION_OK):
+                self.exe_filename = "" 
+                return (False, verdict)
+        ex_code = os.system(self.exe_filename + " > " + output_filename)
+        return (ex_code == 0, "execution process")
     def clear(self, output_filename):
         os.system("rm " + output_filename)
         
