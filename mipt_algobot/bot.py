@@ -416,10 +416,13 @@ def kill(update, context):
 
 def error(update, context):
     logger.warning('ERROR: Update "%s" caused error "%s"', update, context.error)
-    update.message.reply_text("Error has been occured!")
-    context.bot.send_message(int(ADMIN_ID), "Error!")
-    context.bot.send_message(int(ADMIN_ID), str(update))
-    context.bot.send_message(int(ADMIN_ID), str(context.error))
+    try:
+        update.message.reply_text("Error has been occured!")
+        context.bot.send_message(int(ADMIN_ID), "Error!")
+        context.bot.send_message(int(ADMIN_ID), str(update))
+        context.bot.send_message(int(ADMIN_ID), str(context.error))
+    except Exception as ex:
+        context.bot.send_message(int(ADMIN_ID), "Strange error: " + str(context.error))
 
 # ============ ADDING HANDLERS ==============
 def main():
