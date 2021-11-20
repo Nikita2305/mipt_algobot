@@ -219,11 +219,13 @@ def set_solution_letter(update, context):
 
 def set_solution_file(update, context):
     global contest_obj
-    solution_path = "./mipt_algobot/contest/solutions/" + context.user_data['letter'] + str(update.effective_user.id) + ".cpp"
+    solution_path = "./mipt_algobot/contest/solutions/" + context.user_data['letter'] + gen_timestamp() + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(solution_path)
     res = contest_obj.set_solution(solution_path, context.user_data['letter'])
     update.message.reply_text(res[1])
+    if (not res[0]):
+        os.system("rm " + solution_path)
     return ConversationHandler.END 
 
 COMPARATOR_LETTER_STATE, COMPARATOR_FILE_STATE, = range(2)
@@ -241,7 +243,7 @@ def set_comparator_letter(update, context):
 
 def set_comparator_file(update, context):
     global contest_obj
-    comparator_path = "./mipt_algobot/contest/comparators/" + context.user_data['letter'] + str(update.effective_user.id) + ".cpp"
+    comparator_path = "./mipt_algobot/contest/comparators/" + context.user_data['letter'] + gen_timestamp() + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(comparator_path)
     res = contest_obj.set_comparator(comparator_path, context.user_data['letter'])
@@ -318,7 +320,7 @@ def add_generator_type(update, context):
 
 def add_generator_file(update, context):
     global contest_obj 
-    generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + ".cpp"
+    generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + "_" + gen_timestamp() + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(generator_path) 
     res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['gen_description'], context.user_data['letter'])
