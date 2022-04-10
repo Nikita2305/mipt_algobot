@@ -44,8 +44,8 @@ class compilation:
         self.status = "" 
 
     def compile(self, cpp_file, time_limit, return_exe):
-        exe_file = "./mipt_algobot/temp/" + gen_timestamp()
-        log_file = "./mipt_algobot/temp/" + gen_timestamp() + ".txt"
+        exe_file = os.path.dirname(__file__) + "/temp/" + gen_timestamp()
+        log_file = os.path.dirname(__file__) + "/temp/" + gen_timestamp() + ".txt"
         status, code = system_call("g++ -std=c++17 -O3 " + cpp_file + " -o " + exe_file + " >" + log_file + " 2>&1", time_limit)
         try:
             with open(log_file, "r") as f:

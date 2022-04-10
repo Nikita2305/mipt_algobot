@@ -6,7 +6,7 @@ import subprocess
 ERROR_CODE = 143
 FALSE_CODE = 144
 TRUE_CODE = 0
-DEFAULT_COMPARATOR = "./mipt_algobot/tools/default_comp.cpp"
+DEFAULT_COMPARATOR = os.path.dirname(__file__) + "/tools/default_comp.cpp"
 
 class comparator:
     def __init__(self):

@@ -7,7 +7,7 @@ TEST_COUNT = 500
 CONST_TESTS = 10
 
 def vitek_path(path):
-    return os.path.relpath(path, "./mipt_algobot/temp/user")
+    return os.path.relpath(path, os.path.dirname(__file__) + "/temp/user")
     
 def vitek_bash(command):
     return "sudo su vitek -c \"" + command + "\""
@@ -15,9 +15,9 @@ def vitek_bash(command):
 VERDICT_OK, VERDICT_WA, VERDICT_TL, VERDICT_ERROR, = range(4)
 
 def compare(exe_OK, exe_TEST, test, self_comparator, TIME_WAIT):
-    output1 = "./mipt_algobot/temp/" + gen_timestamp()
+    output1 = os.path.dirname(__file__) + "/temp/" + gen_timestamp()
     OK1 = fast_system_call(exe_OK + " < " + test + " > " + output1, TIME_WAIT)[0]
-    output2 = "./mipt_algobot/temp/user/" + gen_timestamp() 
+    output2 = os.path.dirname(__file__) + "/temp/user/" + gen_timestamp() 
     # OK2 = fast_system_call(exe_TEST + " < " + test + " > " + output2, TIME_WAIT)[0]
     OK2 = fast_system_call(vitek_bash(exe_TEST + " < " + test + " > " + output2), TIME_WAIT)[0] 
     if (not OK1):
@@ -88,7 +88,7 @@ class task:
                 return (False, "There is such generator already!")
        
         test_gen = generator(gname, gfile, gpriority, gtype, gdescription) # to test
-        filename = "./mipt_algobot/temp/to_check_generator.txt"
+        filename = os.path.dirname(__file__) + "/temp/to_check_generator.txt"
         flag, verdict = test_gen.generate(filename)
         if not flag:
             test_gen.clear(filename)
@@ -150,7 +150,7 @@ class task:
     def stress(self, fsolution): 
         if (self.solution == None or len(self.generators) == 0):
             return (False, "Task is not complete")
-        filename = "./mipt_algobot/temp/input.txt"
+        filename = os.path.dirname(__file__) + "/temp/input.txt"
         temp_good = compilation().compile(self.solution, COMPILATION_TIME_WAIT, True)
         temp_check = compilation().compile(fsolution, COMPILATION_TIME_WAIT, True)
         if (temp_good[0] != COMPILATION_OK):

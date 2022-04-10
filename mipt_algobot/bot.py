@@ -171,7 +171,7 @@ def set_contest_link(update, context):
         filename="prev_cont.tar.gz",
         caption="Your previous contest"
     )
-    os.system("./restart.sh")
+    os.system("sh " + os.path.dirname(__file__) + "/../scripts/restart.sh")
     contest_obj = contest(context.user_data['size'], update.message.text)
     update.message.reply_text("Создан контест на " + str(context.user_data['size']) +" задач")
     return ConversationHandler.END
@@ -219,7 +219,7 @@ def set_solution_letter(update, context):
 
 def set_solution_file(update, context):
     global contest_obj
-    solution_path = "./mipt_algobot/contest/solutions/" + context.user_data['letter'] + gen_timestamp() + ".cpp"
+    solution_path = os.path.dirname(__file__) + "/contest/solutions/" + context.user_data['letter'] + gen_timestamp() + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(solution_path)
     res = contest_obj.set_solution(solution_path, context.user_data['letter'])
@@ -243,7 +243,7 @@ def set_comparator_letter(update, context):
 
 def set_comparator_file(update, context):
     global contest_obj
-    comparator_path = "./mipt_algobot/contest/comparators/" + context.user_data['letter'] + gen_timestamp() + ".cpp"
+    comparator_path = os.path.dirname(__file__) + "/contest/comparators/" + context.user_data['letter'] + gen_timestamp() + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(comparator_path)
     res = contest_obj.set_comparator(comparator_path, context.user_data['letter'])
@@ -320,7 +320,7 @@ def add_generator_type(update, context):
 
 def add_generator_file(update, context):
     global contest_obj 
-    generator_path = "./mipt_algobot/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + "_" + gen_timestamp() + ".cpp"
+    generator_path = os.path.dirname(__file__) + "/contest/generators/" + context.user_data['letter'] + context.user_data['gen_name'] + "_" + gen_timestamp() + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(generator_path) 
     res = contest_obj.add_generator(context.user_data['gen_name'], generator_path, context.user_data['prior'], context.user_data['type'], context.user_data['gen_description'], context.user_data['letter'])
@@ -368,7 +368,7 @@ def stress_letter(update, context):
     return STRESS_FILE_STATE   
  
 def stress_file(update, context):
-    temp_path = "./mipt_algobot/temp/" + context.user_data['letter'] + ".cpp"
+    temp_path = os.path.dirname(__file__) + "/temp/" + context.user_data['letter'] + ".cpp"
     f = context.bot.getFile(update.message.document.file_id)
     f.download(temp_path)
     update.message.reply_text("Ok, testing...")
@@ -413,7 +413,7 @@ def cancel(update, context):
 
 def kill(update, context):
     update.message.reply_text("Сессия закрыта, пока:)")
-    os.system("rm ./mipt_algobot/temp/*")
+    os.system(f"rm {os.path.dirname(__file__)}/temp/*")
     quit()
 
 def error(update, context):
@@ -572,14 +572,14 @@ def main():
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-contest_path = "./mipt_algobot/contest/contest.txt"
+contest_path = os.path.dirname(__file__) + "/contest/contest.txt"
 contest_obj = contest()
 try:
     contest_obj.load(contest_path)
 except Exception as e:
     print(e)
 
-manager_path = "./mipt_algobot/contest/access_manager.txt"
+manager_path = os.path.dirname(__file__) + "/contest/access_manager.txt"
 access_manager_obj = access_manager()
 try:
     access_manager_obj.load(manager_path)
