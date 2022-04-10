@@ -3,15 +3,13 @@ This bot enables stress-testing on "Algorithms and Data Structures" course for M
 
 ## How to launch
 
-To prepare:
-* Clone this repo and change directory to there (e.g. `cd mipt_algobot`)
-* Set up environment:  `pipenv install python-telegram-bot`
-* Create user (name is important): sudo useradd -s /bin/bash -d \`pwd\`/mipt_algobot/temp/user -m -G sudo vitek
-* Change ownership of testing folder: `sudo chown -R vitek mipt_algobot/temp/user`
+## To prepare
+./scripts/setup.sh
 
-To run:
-* Important: `sudo cat README.md` - in order to authorize sudo
-* Change local environment pythonpath: export PYTHONPATH=${PYTHONPATH}:\`pwd\`
-* Run the bot: `pipenv run python mipt_algobot/bot.py`
+## To run the bot
+./scripts/start.sh
+
+## Tips
+This bot was set up to recognize me as a basic admin. Change this in bot.py.
 
 by [_Nikita Nikitin_](https://vk.com/flekser_from_sirius), MIPT
