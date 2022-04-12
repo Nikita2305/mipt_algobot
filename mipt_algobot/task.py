@@ -6,11 +6,13 @@ import os
 TEST_COUNT = 500
 CONST_TESTS = 10
 
-def vitek_path(path):
-    return os.path.relpath(path, os.path.dirname(__file__) + "/temp/user")
+vitek_root = os.path.dirname(__file__) + "/temp/user"
+
+def vitek_path(path): 
+    return os.path.relpath(path, vitek_root)
     
 def vitek_bash(command):
-    return "sudo su vitek -c \"" + command + "\""
+    return "cd " + vitek_root + ";sudo su vitek -c \"" + command + "\""
 
 VERDICT_OK, VERDICT_WA, VERDICT_TL, VERDICT_ERROR, = range(4)
 
@@ -19,10 +21,9 @@ def compare(exe_OK, exe_TEST, test, self_comparator, TIME_WAIT):
     OK1 = fast_system_call(exe_OK + " < " + test + " > " + output1, TIME_WAIT)[0]
     output2 = os.path.dirname(__file__) + "/temp/user/" + gen_timestamp() 
     # OK2 = fast_system_call(exe_TEST + " < " + test + " > " + output2, TIME_WAIT)[0]
-    OK2 = fast_system_call(vitek_bash(exe_TEST + " < " + test + " > " + output2), TIME_WAIT)[0] 
+    OK2 = fast_system_call(vitek_bash(vitek_path(exe_TEST) + " < " + vitek_path(test) + " > " + vitek_path(output2)), TIME_WAIT)[0]
     if (not OK1):
         os.system("rm -f " + output1 + " " + output2)
-        print("Author solution has TL!!!")
         return (VERDICT_ERROR, None)
     if (not OK2):
         os.system("sudo killall -u vitek")
@@ -34,7 +35,6 @@ def compare(exe_OK, exe_TEST, test, self_comparator, TIME_WAIT):
             raise Exception("Error while executing")
         ret = (True if ret == TRUE_CODE else False)
     except Exception as e:
-        print(e)
         os.system("rm -f " + output1 + " " + output2)
         return (VERDICT_ERROR, None)
     if (ret):
@@ -168,14 +168,12 @@ class task:
         test_number = 0
         passed_generators = []
         for gen in self.generators:
-            print("+ Generator")
             if (gen.generator_type == MULTI_TEST):
                 tests_count = TEST_COUNT // multi_test_count
             else:
                 tests_count = CONST_TESTS
             for i in range(tests_count):
                 test_number += 1
-                # print("Test " + str(test_number))
                 if (gen.generate(filename)[0]):
                     verdict, judge_answer = compare(temp_good, temp_check, filename, self.comparator, self.time_limit)
                     if (verdict == VERDICT_WA or verdict == VERDICT_TL):
@@ -201,6 +199,6 @@ class task:
         os.system("rm " + temp_good)
         os.system("rm " + temp_check)
         self.comparator.remove_executable()
-        return (False, "Your solution seems OK. " + str(test_number) + " small tests were passed.\n\n" + passed_generators_to_string(passed_generators)) 
+        return (False, "Your solution seems OK. " + str(test_number) + " tests were passed.\n\n" + passed_generators_to_string(passed_generators)) 
     def generators_to_string(self):
         return [str(gen.priority) + ". " + str(gen.gen_name) + " " + ("(multi)" if gen.generator_type == MULTI_TEST else "(single)") for gen in self.generators]
